@@ -277,7 +277,7 @@ public final class ToolkitScreen extends Screen {
             graphics.centeredText(font, Component.literal("Only client-loaded players can be highlighted"), width / 2, height - 57, 0xFFAAAAAA);
         } else if (page == Page.MAP) {
             if (ToolkitConfig.INSTANCE.mapPreview) {
-                ToolkitMap.render(graphics, width / 2 - 80, Math.max(108, height / 2 - 65), 1);
+                ToolkitMap.render(graphics, width / 2 - 88, Math.max(91, height / 2 - 88), 2);
             }
         } else if (page == Page.WORLD) {
             graphics.centeredText(font, Component.literal("Experimental: saves loaded chunks only"), width / 2, height / 2, 0xFFAAAAAA);

@@ -17,100 +17,139 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Small, bounded minimap from already-loaded client chunks.
- * No chunk loading, downloads, network traffic or world-file scans.
+ * Higher-resolution terrain preview: one block per pixel instead of sampling
+ * every fourth block. A bounded row budget prevents sudden CPU spikes.
+ *
+ * The minimap uses cached colors and compact horizontal fill runs: nothing
+ * requests new chunks or performs world queries during UI rendering.
  */
 public final class ToolkitMap {
-    private static final int CELLS = 25;
-    private static final int STEP = 4;
+    private static final int CELLS = 88;
     private static final int[] PIXELS = new int[CELLS * CELLS];
     private static List<Marker> MARKERS = List.of();
+    private static Object lastLevel;
     private static int ticks;
     private static int centerX;
     private static int centerZ;
+    private static int nextRow = CELLS;
     private static boolean ready;
 
     public record Marker(int dx, int dz, boolean teammate) {}
-
     private ToolkitMap() {}
 
     public static void tick(Minecraft mc) {
         if (mc.level == null || mc.player == null) {
             ready = false;
+            lastLevel = null;
+            nextRow = CELLS;
             MARKERS = List.of();
             return;
         }
         if (!ToolkitConfig.INSTANCE.minimap && !ToolkitConfig.INSTANCE.mapPreview) return;
-        if (++ticks % 12 != 0) return;
 
-        centerX = mc.player.getBlockX();
-        centerZ = mc.player.getBlockZ();
+        int playerX = mc.player.getBlockX();
+        int playerZ = mc.player.getBlockZ();
+        if (mc.level != lastLevel || (!ready && nextRow == CELLS)
+                || (nextRow >= CELLS && Math.abs(playerX - centerX) + Math.abs(playerZ - centerZ) >= 4)) {
+            lastLevel = mc.level;
+            centerX = playerX;
+            centerZ = playerZ;
+            nextRow = 0;
+            ready = true;
+            java.util.Arrays.fill(PIXELS, 0xFF232832);
+        }
+
+        // At most 6 rows * 88 block samples per tick. No on-frame scans.
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-        for (int row = 0; row < CELLS; row++) {
+        int limit = Math.min(CELLS, nextRow + 6);
+        for (int row = nextRow; row < limit; row++) {
+            int bz = centerZ + row - CELLS / 2;
+            LevelChunk lastChunk = null;
+            int lastChunkX = Integer.MIN_VALUE;
             for (int col = 0; col < CELLS; col++) {
-                int bx = centerX + (col - CELLS / 2) * STEP;
-                int bz = centerZ + (row - CELLS / 2) * STEP;
-                var chunk = mc.level.getChunkSource().getChunk(Math.floorDiv(bx, 16), Math.floorDiv(bz, 16), ChunkStatus.FULL, false);
-                int color = 0xFF151C27;
-                if (chunk instanceof LevelChunk loaded) {
-                    int topY = loaded.getHeight(Heightmap.Types.WORLD_SURFACE, bx & 15, bz & 15);
-                    if (topY > loaded.getMinY()) {
-                        BlockState state = loaded.getBlockState(pos.set(bx, topY - 1, bz));
-                        color = surfaceColor(state, topY);
+                int bx = centerX + col - CELLS / 2;
+                int cx = Math.floorDiv(bx, 16);
+                int cz = Math.floorDiv(bz, 16);
+                if (cx != lastChunkX) {
+                    var found = mc.level.getChunkSource().getChunk(cx, cz, ChunkStatus.FULL, false);
+                    lastChunk = found instanceof LevelChunk loaded ? loaded : null;
+                    lastChunkX = cx;
+                }
+                int color = 0xFF232832;
+                if (lastChunk != null) {
+                    int highest = lastChunk.getHeight(Heightmap.Types.WORLD_SURFACE, bx & 15, bz & 15);
+                    if (highest > lastChunk.getMinY()) {
+                        BlockState state = lastChunk.getBlockState(pos.set(bx, highest - 1, bz));
+                        color = terrainColor(state, highest);
                     }
                 }
                 PIXELS[row * CELLS + col] = color;
             }
         }
+        nextRow = limit;
 
-        List<Marker> markers = new ArrayList<>();
-        for (Entity e : mc.level.entitiesForRendering()) {
-            if (!(e instanceof Player player) || player == mc.player) continue;
-            int dx = player.getBlockX() - centerX;
-            int dz = player.getBlockZ() - centerZ;
-            if (Math.abs(dx) <= CELLS / 2 * STEP && Math.abs(dz) <= CELLS / 2 * STEP) {
-                markers.add(new Marker(dx, dz, TeamNames.matches(player)));
+        if (++ticks % 5 == 0) {
+            List<Marker> found = new ArrayList<>();
+            for (Entity entity : mc.level.entitiesForRendering()) {
+                if (!(entity instanceof Player player) || player == mc.player) continue;
+                int dx = player.getBlockX() - centerX;
+                int dz = player.getBlockZ() - centerZ;
+                if (Math.abs(dx) < CELLS / 2 && Math.abs(dz) < CELLS / 2) {
+                    found.add(new Marker(dx, dz, TeamNames.matches(player)));
+                }
             }
+            MARKERS = List.copyOf(found);
         }
-        MARKERS = List.copyOf(markers);
-        ready = true;
     }
 
-    private static int surfaceColor(BlockState s, int y) {
-        if (s.is(Blocks.WATER)) return 0xFF306DA7;
-        if (s.is(Blocks.LAVA)) return 0xFFF48B32;
-        if (s.is(Blocks.GRASS_BLOCK)) return 0xFF4B9150;
-        if (s.is(Blocks.SAND) || s.is(Blocks.RED_SAND)) return 0xFFC7BB7B;
-        if (s.is(Blocks.SNOW_BLOCK) || s.is(Blocks.SNOW)) return 0xFFDDDEE5;
-        if (s.is(Blocks.STONE) || s.is(Blocks.DEEPSLATE) || s.is(Blocks.GRAVEL)) return 0xFF747B86;
-        if (s.is(Blocks.OAK_LEAVES) || s.is(Blocks.BIRCH_LEAVES) || s.is(Blocks.SPRUCE_LEAVES)) return 0xFF36744B;
-        if (s.isAir()) return 0xFF1E2936;
-        return y > 110 ? 0xFF9EAA98 : 0xFF696F54;
+    private static int terrainColor(BlockState state, int elevation) {
+        int base;
+        if (state.is(Blocks.WATER) || state.is(Blocks.BUBBLE_COLUMN)) base = 0xFF3674B2;
+        else if (state.is(Blocks.LAVA)) base = 0xFFF49B38;
+        else if (state.is(Blocks.GRASS_BLOCK)) base = 0xFF558F47;
+        else if (state.is(Blocks.SAND) || state.is(Blocks.RED_SAND)) base = 0xFFC8BB80;
+        else if (state.is(Blocks.SNOW_BLOCK) || state.is(Blocks.SNOW)) base = 0xFFE2E5E8;
+        else if (state.is(Blocks.STONE) || state.is(Blocks.DEEPSLATE) || state.is(Blocks.GRAVEL)) base = 0xFF818991;
+        else if (state.is(Blocks.OAK_LEAVES) || state.is(Blocks.BIRCH_LEAVES) || state.is(Blocks.SPRUCE_LEAVES)) base = 0xFF387C44;
+        else if (state.isAir()) base = 0xFF2B3341;
+        else base = 0xFF83765A;
+
+        // Restrained 4-level height shading adds relief without coarse pixels.
+        int shade = Math.floorMod(elevation / 3, 4) * 6 - 9;
+        int r = Math.max(0, Math.min(255, ((base >> 16) & 255) + shade));
+        int g = Math.max(0, Math.min(255, ((base >> 8) & 255) + shade));
+        int b = Math.max(0, Math.min(255, (base & 255) + shade));
+        return 0xFF000000 | r << 16 | g << 8 | b;
     }
 
     public static void render(GuiGraphicsExtractor g, int x, int y, int tile) {
-        int size = CELLS * tile;
-        g.fill(x - 4, y - 19, x + size + 4, y + size + 4, 0xDF11161F);
-        g.text(Minecraft.getInstance().font, "YUKKIT MAP", x, y - 14, 0xFFEEEEEE, true);
+        int side = CELLS * tile;
+        g.fill(x - 3, y - 16, x + side + 3, y + side + 3, 0xDD101010);
+        g.text(Minecraft.getInstance().font, "MAP  " + centerX + ", " + centerZ,
+                x, y - 12, 0xFFFFFFFF, true);
         if (!ready) {
-            g.text(Minecraft.getInstance().font, "Loading map...", x, y + 6, 0xFFC9C9C9, true);
+            g.text(Minecraft.getInstance().font, "Loading terrain...", x, y + 8, 0xFFBBBBBB, true);
             return;
         }
+        // Merge consecutive pixels of the same color into horizontal runs.
         for (int row = 0; row < CELLS; row++) {
-            for (int col = 0; col < CELLS; col++) {
-                int sx = x + col * tile;
-                int sy = y + row * tile;
-                g.fill(sx, sy, sx + tile, sy + tile, PIXELS[row * CELLS + col]);
+            int col = 0;
+            while (col < CELLS) {
+                int current = PIXELS[row * CELLS + col];
+                int end = col + 1;
+                while (end < CELLS && PIXELS[row * CELLS + end] == current) end++;
+                g.fill(x + col * tile, y + row * tile, x + end * tile, y + (row + 1) * tile, current);
+                col = end;
             }
         }
-        int midpoint = CELLS / 2 * tile + tile / 2;
-        g.fill(x + midpoint - 2, y + midpoint - 2, x + midpoint + 2, y + midpoint + 2, 0xFFFFFFFF);
+        int middle = (CELLS / 2) * tile;
+        g.fill(x + middle - 2, y + middle - 2, x + middle + 2, y + middle + 2, 0xFFFFFFFF);
         for (Marker marker : MARKERS) {
-            int mx = x + midpoint + marker.dx * tile / STEP;
-            int my = y + midpoint + marker.dz * tile / STEP;
-            if (mx < x || mx >= x + size || my < y || my >= y + size) continue;
+            int mx = x + middle + marker.dx * tile;
+            int my = y + middle + marker.dz * tile;
+            if (mx < x || mx >= x + side || my < y || my >= y + side) continue;
             g.fill(mx - 2, my - 2, mx + 2, my + 2,
-                    marker.teammate ? 0xFF00D7FF : 0xFFEA6C70);
+                    marker.teammate ? 0xFF28E2FF : 0xFFF15E5E);
         }
     }
 

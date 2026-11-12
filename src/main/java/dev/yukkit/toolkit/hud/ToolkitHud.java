@@ -82,7 +82,7 @@ public final class ToolkitHud {
         if (minecraft.player == null || minecraft.gui.hud.isHidden()) return;
         ToolkitConfig config = ToolkitConfig.INSTANCE;
         if (config.keystrokes) renderKeystrokes(minecraft, graphics);
-        if (config.minimap) ToolkitMap.render(graphics, 8, 32, 3);
+        if (config.minimap) ToolkitMap.render(graphics, 8, 32, 1);
         int y = 12;
         if (config.tntTimer && !tnt.isEmpty()) {
             y = renderRows(minecraft, graphics, "TNT TIMER", tnt, y, 0xFFFFC55A);
