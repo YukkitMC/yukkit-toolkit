@@ -88,7 +88,7 @@ public final class ToolkitScreen extends Screen {
                 refresh();
             });
         }
-        addButton(x + panelWidth - 35, y + 9, 23, 20, "X", this::close);
+        addButton(x + panelWidth - 35, y + 9, 23, 20, "X", this::closePanel);
     }
 
     private void addButton(int bx, int by, int w, int h, String label, Runnable click) {
@@ -106,7 +106,7 @@ public final class ToolkitScreen extends Screen {
         if (client != null) client.setScreen(new ToolkitScreen());
     }
 
-    private void close() {
+    private void closePanel() {
         if (client != null) client.setScreen(null);
     }
 
