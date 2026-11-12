@@ -5,9 +5,9 @@ import dev.yukkit.toolkit.ToolkitConfig;
 import dev.yukkit.toolkit.YukkitToolkitClient;
 import dev.yukkit.toolkit.camera.FreecamController;
 import dev.yukkit.toolkit.camera.PerspectiveController;
-import dev.yukkit.toolkit.performance.PerformanceController;
 import dev.yukkit.toolkit.cosmetics.CapeCosmetics;
 import dev.yukkit.toolkit.map.ToolkitMap;
+import dev.yukkit.toolkit.performance.PerformanceController;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -19,247 +19,273 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.component.SwingAnimation;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
+/**
+ * Vanilla GUI presentation. All interactive controls use Minecraft's native
+ * Button/EditBox widgets and the default Screen backdrop. The map is the
+ * only custom-rendered section; there are no hand-drawn panels or button skins.
+ */
 public final class ToolkitScreen extends Screen {
-    private static final int BG = 0xFF0C1019;
-    private static final int SIDEBAR = 0xFF141C2A;
-    private static final int BLUE = 0xFF006EFE;
-    private static final int FG = 0xFFF5F7FC;
-    private static final int MUTED = 0xFF9AA6BE;
-    private static final String[] TABS = {"Visual", "Camera", "Mods", "Team Time", "Style", "World", "Map"};
-    private static int tab = 0;
-    private static int teamOffset = 0;
+    public enum Page { HOME, VISUAL, CAMERA, MODS, TEAM, STYLE, WORLD, MAP }
 
-    private int x, y, panelWidth, panelHeight;
+    private final Screen parent;
+    private final Page page;
     private EditBox nameBox;
-    private final Screen previousScreen;
-    private String message = "";
+    private String feedback = "";
+    private int teamPage = 0;
 
-    public ToolkitScreen() { this(null); }
+    public ToolkitScreen() {
+        this(null, Page.HOME);
+    }
 
-    public ToolkitScreen(Screen previousScreen) {
-        super(Component.literal("Yukkit Tools"));
-        this.previousScreen = previousScreen;
+    public ToolkitScreen(Screen parent) {
+        this(parent, Page.HOME);
+    }
+
+    private ToolkitScreen(Screen parent, Page page) {
+        super(Component.literal(page == Page.HOME ? "Yukkit Tools" : "Yukkit Tools - " + pretty(page)));
+        this.parent = parent;
+        this.page = page;
+    }
+
+    private static String pretty(Page page) {
+        return switch (page) {
+            case HOME -> "Home";
+            case VISUAL -> "Visual";
+            case CAMERA -> "Camera";
+            case MODS -> "Mods";
+            case TEAM -> "Team";
+            case STYLE -> "Style";
+            case WORLD -> "World";
+            case MAP -> "Map";
+        };
     }
 
     @Override
     protected void init() {
-        panelWidth = Math.min(580, width - 16);
-        panelHeight = Math.min(380, height - 16);
-        x = (width - panelWidth) / 2;
-        y = (height - panelHeight) / 2;
-        for (int i = 0; i < TABS.length; i++) {
-            final int target = i;
-            addButton(x + 11, y + 56 + i * 33, 105, 25,
-                    (tab == i ? " > " : "   ") + TABS[i], () -> changeTab(target));
-        }
-        int right = x + 145;
-        int bw = Math.max(90, panelWidth - 164);
-        int top = y + 67;
-        ToolkitConfig cfg = ToolkitConfig.INSTANCE;
-        Minecraft mc = Minecraft.getInstance();
+        super.init();
+        int left = width / 2 - 154;
+        int right = width / 2 + 4;
+        int top = Math.max(46, height / 2 - 108);
+        int pairWidth = 150;
+        ToolkitConfig config = ToolkitConfig.INSTANCE;
 
-        switch (tab) {
-            case 0 -> {
-                addButton(right, top, bw, 25, "Time: " + cfg.timeLabel(), () -> {
-                    cfg.localTime = (cfg.localTime + 1) % 5; cfg.save(); refresh();
-                });
-                addButton(right, top + 36, bw, 25, "Weather: " + cfg.weatherLabel(), () -> {
-                    cfg.localWeather = (cfg.localWeather + 1) % 3; cfg.save(); refresh();
-                });
-                addButton(right, top + 72, bw, 25, "Fullbright: " + onOff(cfg.fullbright), () -> {
-                    cfg.fullbright = !cfg.fullbright; cfg.save(); refresh();
+        if (page == Page.HOME) {
+            nativeButton(left, top, pairWidth, "Visual", () -> open(Page.VISUAL));
+            nativeButton(right, top, pairWidth, "Camera", () -> open(Page.CAMERA));
+            nativeButton(left, top + 25, pairWidth, "Mods", () -> open(Page.MODS));
+            nativeButton(right, top + 25, pairWidth, "Team", () -> open(Page.TEAM));
+            nativeButton(left, top + 50, pairWidth, "Cosmetics", () -> open(Page.STYLE));
+            nativeButton(right, top + 50, pairWidth, "World", () -> open(Page.WORLD));
+            nativeButton(left, top + 75, pairWidth, "Map", () -> open(Page.MAP));
+            nativeButton(right, top + 75, pairWidth, "Settings", () -> open(Page.MODS));
+        } else if (page == Page.VISUAL) {
+            nativeButton(left, top, pairWidth, "Time: " + config.timeLabel(), () -> {
+                config.localTime = (config.localTime + 1) % 5;
+                change();
+            });
+            nativeButton(right, top, pairWidth, "Weather: " + config.weatherLabel(), () -> {
+                config.localWeather = (config.localWeather + 1) % 3;
+                change();
+            });
+            nativeButton(left, top + 25, pairWidth, "Fullbright: " + label(config.fullbright), () -> {
+                config.fullbright = !config.fullbright;
+                change();
+            });
+        } else if (page == Page.CAMERA) {
+            nativeButton(left, top, pairWidth, "Freecam: " + label(FreecamController.isEnabled()), () -> {
+                FreecamController.toggle(Minecraft.getInstance());
+                change();
+            });
+            nativeButton(right, top, pairWidth, "Perspective: " + label(PerspectiveController.isEnabled()), () -> {
+                PerspectiveController.toggle(Minecraft.getInstance());
+                change();
+            });
+            nativeButton(left, top + 25, 308, "Reset Camera", () -> {
+                FreecamController.disable();
+                PerspectiveController.disable();
+                change();
+            });
+        } else if (page == Page.MODS) {
+            nativeButton(left, top, pairWidth, "Keystrokes: " + label(config.keystrokes), () -> {
+                config.keystrokes = !config.keystrokes;
+                change();
+            });
+            nativeButton(right, top, pairWidth, "TNT Timer: " + label(config.tntTimer), () -> {
+                config.tntTimer = !config.tntTimer;
+                change();
+            });
+            nativeButton(left, top + 25, pairWidth, "Team HUD: " + label(config.teamHud), () -> {
+                config.teamHud = !config.teamHud;
+                change();
+            });
+            nativeButton(right, top + 25, pairWidth, "Light Graphics: " + label(PerformanceController.isEnabled()), () -> {
+                PerformanceController.toggle(Minecraft.getInstance());
+                change();
+            });
+        } else if (page == Page.TEAM) {
+            nameBox = new EditBox(font, left, top, 232, 20, Component.literal("Minecraft player name"));
+            nameBox.setMaxLength(32);
+            nameBox.setHint(Component.literal("Player name (offline names allowed)"));
+            addRenderableWidget(nameBox);
+            nativeButton(left + 238, top, 70, "Add", this::addTeammate);
+            nativeButton(left, top + 25, pairWidth, "Glow: " + label(config.teamGlow), () -> {
+                config.teamGlow = !config.teamGlow;
+                change();
+            });
+            nativeButton(right, top + 25, pairWidth, "Team HUD: " + label(config.teamHud), () -> {
+                config.teamHud = !config.teamHud;
+                change();
+            });
+            List<String> names = config.teamMates == null ? List.of() : config.teamMates;
+            int visible = Math.min(3, Math.max(0, names.size() - teamPage * 3));
+            for (int i = 0; i < visible; i++) {
+                final int index = teamPage * 3 + i;
+                nativeButton(right + 100, top + 54 + i * 25, 50, "X", () -> {
+                    config.teamMates.remove(index);
+                    change();
                 });
             }
-            case 1 -> {
-                addButton(right, top, bw, 25, "Freecam: " + onOff(FreecamController.isEnabled()), () -> {
-                    FreecamController.toggle(mc); refresh();
-                });
-                addButton(right, top + 36, bw, 25, "Perspective: " + onOff(PerspectiveController.isEnabled()), () -> {
-                    PerspectiveController.toggle(mc); refresh();
-                });
-                addButton(right, top + 72, bw, 25, "Reset Camera", () -> {
-                    FreecamController.disable(); PerspectiveController.disable(); refresh();
-                });
-            }
-            case 2 -> {
-                addButton(right, top, bw, 25, "Keystrokes: " + onOff(cfg.keystrokes), () -> {
-                    cfg.keystrokes = !cfg.keystrokes; cfg.save(); refresh();
-                });
-                addButton(right, top + 36, bw, 25, "TNT Timer: " + onOff(cfg.tntTimer), () -> {
-                    cfg.tntTimer = !cfg.tntTimer; cfg.save(); refresh();
-                });
-                addButton(right, top + 72, bw, 25, "Lightweight Graphics: " + onOff(PerformanceController.isEnabled()), () -> {
-                    PerformanceController.toggle(mc); refresh();
-                });
-                addButton(right, top + 108, bw, 25, "Team HUD: " + onOff(cfg.teamHud), () -> {
-                    cfg.teamHud = !cfg.teamHud; cfg.save(); refresh();
-                });
-            }
-            case 3 -> {
-                int fieldW = Math.max(65, bw - 78);
-                nameBox = new EditBox(font, right, top, fieldW, 24, Component.literal("Minecraft nickname"));
-                nameBox.setMaxLength(32);
-                nameBox.setHint(Component.literal("Player nickname"));
-                addRenderableWidget(nameBox);
-                addButton(right + fieldW + 6, top, 66, 24, "Add", this::addFriend);
-                addButton(right, top + 38, bw, 24, "Glow nearby: " + onOff(cfg.teamGlow), () -> {
-                    cfg.teamGlow = !cfg.teamGlow; cfg.save(); refresh();
-                });
-                if (cfg.teamMates == null) cfg.teamMates = new ArrayList<>();
-                teamOffset = Math.min(teamOffset, Math.max(0, cfg.teamMates.size() - 4));
-                for (int i = teamOffset; i < Math.min(teamOffset + 4, cfg.teamMates.size()); i++) {
-                    final int index = i;
-                    // Player names are labels, not clickable no-op buttons.
-                    addButton(right + bw - 53, top + 72 + (i - teamOffset) * 30, 53, 24, "Remove", () -> {
-                        cfg.teamMates.remove(index); cfg.save(); refresh();
-                    });
-                }
-                addButton(right, top + 201, bw / 2 - 4, 22, "Previous", () -> {
-                    teamOffset = Math.max(0, teamOffset - 4); refresh();
-                });
-                addButton(right + bw / 2 + 4, top + 201, bw / 2 - 4, 22, "Next", () -> {
-                    teamOffset = Math.min(Math.max(0, cfg.teamMates.size() - 4), teamOffset + 4); refresh();
-                });
-            }
-            case 4 -> {
-                addButton(right, top, bw, 25, "Cape: " + CapeCosmetics.label(), () -> {
-                    cfg.capeStyle = (cfg.capeStyle + 1) % 3;
-                    cfg.save();
-                    refresh();
-                });
-                addButton(right, top + 36, bw, 25, "Wave (vanilla arm animation)", () -> {
-                    if (mc.player != null) mc.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
-                    closePanel();
-                });
-            }
-            case 5 -> addButton(right, top, bw, 26,
-                    YukkitToolkitClient.WORLD_CAPTURE.isCapturing() ? "Stop World Download" : "Start World Download",
+            nativeButton(left, top + 137, pairWidth, "Previous", () -> {
+                teamPage = Math.max(0, teamPage - 1);
+                rebuildWidgets();
+            });
+            nativeButton(right, top + 137, pairWidth, "Next", () -> {
+                teamPage = Math.min(Math.max(0, (names.size() - 1) / 3), teamPage + 1);
+                rebuildWidgets();
+            });
+        } else if (page == Page.STYLE) {
+            nativeButton(left, top, pairWidth, "Cape: " + CapeCosmetics.label(), () -> {
+                config.capeStyle = (config.capeStyle + 1) % 3;
+                change();
+            });
+            nativeButton(right, top, pairWidth, "Wave Emote", () -> {
+                Minecraft mc = Minecraft.getInstance();
+                if (mc.player != null) mc.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
+                onClose();
+            });
+        } else if (page == Page.WORLD) {
+            nativeButton(left, top, 308,
+                    YukkitToolkitClient.WORLD_CAPTURE.isCapturing() ? "Stop World Capture" : "Start World Capture",
                     () -> {
                         if (YukkitToolkitClient.WORLD_CAPTURE.isCapturing()) {
                             YukkitToolkitClient.WORLD_CAPTURE.stop();
                             YukkitToolkitClient.notifyPlayer("World capture stopped.");
-                        } else YukkitToolkitClient.WORLD_CAPTURE.start(mc);
-                        refresh();
+                        } else {
+                            YukkitToolkitClient.WORLD_CAPTURE.start(Minecraft.getInstance());
+                        }
+                        rebuildWidgets();
                     });
-            case 6 -> {
-                addButton(right, top, bw, 24, "Minimap HUD: " + onOff(cfg.minimap), () -> {
-                    cfg.minimap = !cfg.minimap;
-                    cfg.save();
-                    refresh();
-                });
-                addButton(right, top + 34, bw, 24, "Map data: " + onOff(cfg.mapPreview), () -> {
-                    cfg.mapPreview = !cfg.mapPreview;
-                    cfg.save();
-                    refresh();
-                });
-            }
-            default -> {}
+        } else if (page == Page.MAP) {
+            nativeButton(left, top, pairWidth, "Minimap: " + label(config.minimap), () -> {
+                config.minimap = !config.minimap;
+                change();
+            });
+            nativeButton(right, top, pairWidth, "Map preview: " + label(config.mapPreview), () -> {
+                config.mapPreview = !config.mapPreview;
+                change();
+            });
         }
-        addButton(x + panelWidth - 34, y + 10, 22, 20, "X", this::closePanel);
+
+        // Exactly Minecraft's button rendering, placement and text style.
+        int bottom = height - 32;
+        if (page == Page.HOME) {
+            nativeButton(width / 2 - 100, bottom, 200, "Done", this::onClose);
+        } else {
+            nativeButton(width / 2 - 154, bottom, 150, "Apply Changes", () -> {
+                ToolkitConfig.INSTANCE.save();
+                back();
+            });
+            nativeButton(width / 2 + 4, bottom, 150, "Back", this::back);
+        }
     }
 
-    private void addFriend() {
+    private void nativeButton(int x, int y, int width, String name, Runnable callback) {
+        addRenderableWidget(Button.builder(Component.literal(name), button -> callback.run())
+                .bounds(x, y, width, 20).build());
+    }
+
+    private static String label(boolean enabled) { return enabled ? "ON" : "OFF"; }
+
+    private void change() {
+        ToolkitConfig.INSTANCE.save();
+        rebuildWidgets();
+    }
+
+    private void addTeammate() {
         if (nameBox == null) return;
         String name = nameBox.getValue().trim();
         if (!name.matches("[A-Za-z0-9_.-]{1,32}")) {
-            message = "Use 1-32 letters, digits, dot, _ or -.";
+            feedback = "Use 1-32 characters: letters, numbers, . _ -";
             return;
         }
         ToolkitConfig cfg = ToolkitConfig.INSTANCE;
         if (cfg.teamMates == null) cfg.teamMates = new ArrayList<>();
-        if (cfg.teamMates.stream().anyMatch(v -> v.equalsIgnoreCase(name))) {
-            message = "Already on the list.";
+        if (cfg.teamMates.stream().anyMatch(s -> s.equalsIgnoreCase(name))) {
+            feedback = "Already in your team";
             return;
         }
         if (cfg.teamMates.size() >= 64) {
-            message = "Team list limit is 64 players.";
+            feedback = "Team list is full (64)";
             return;
         }
         cfg.teamMates.add(name);
-        cfg.save();
-        refresh();
+        feedback = "";
+        change();
     }
 
-    private static String onOff(boolean value) { return value ? "ON" : "OFF"; }
-
-    private void addButton(int bx, int by, int w, int h, String title, Runnable action) {
-        if (w < 10 || by + h > y + panelHeight - 29) return;
-        addRenderableWidget(Button.builder(Component.literal(title), ignored -> action.run())
-                .bounds(bx, by, w, h).build());
+    private void open(Page page) {
+        if (minecraft != null) minecraft.gui.setScreen(new ToolkitScreen(parent, page));
     }
 
-    private void changeTab(int next) { tab = next; refresh(); }
-    private void refresh() { if (minecraft != null) minecraft.gui.setScreen(new ToolkitScreen(previousScreen)); }
-    private void closePanel() { if (minecraft != null) minecraft.gui.setScreen(previousScreen); }
+    private void back() {
+        if (minecraft != null) minecraft.gui.setScreen(new ToolkitScreen(parent, Page.HOME));
+    }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mx, int my, float dt) {
-        graphics.fill(0, 0, width, height, 0x90000000);
-        graphics.fill(x, y, x + panelWidth, y + panelHeight, 0xE0202020);
-        graphics.fill(x, y, x + panelWidth, y + 2, 0xFF555555);
-        graphics.fill(x + 4, y + 43, x + 128, y + panelHeight - 30, 0xBB303030);
-        graphics.text(font, "YUKKIT", x + 15, y + 15, FG, true);
-        graphics.text(font, "TOOLS", x + 62, y + 15, 0xFFE4E4E4, true);
-        graphics.text(font, "Minecraft 26.3  |  Client utilities", x + 145, y + 25, MUTED, true);
+    public void onClose() {
+        if (minecraft != null) minecraft.gui.setScreen(parent);
+    }
 
-        int px = x + 145, py = y + 48;
-        graphics.text(font, TABS[tab].toUpperCase(Locale.ROOT), px, py, FG, true);
-        switch (tab) {
-            case 1 -> {
-                graphics.text(font, "Freecam: WASD / Space / Shift / Sprint", px, y + 202, MUTED, true);
-                graphics.text(font, "Perspective: press V in-game", px, y + 216, MUTED, true);
-            }
-            case 2 -> {
-                graphics.text(font, "Low FX changes vanilla graphics settings.", px, y + 252, MUTED, true);
-                graphics.text(font, "Toggle again to restore your settings.", px, y + 266, MUTED, true);
-            }
-            case 3 -> {
-                var entries = ToolkitConfig.INSTANCE.teamMates;
-                if (entries != null) {
-                    for (int i = teamOffset; i < Math.min(teamOffset + 4, entries.size()); i++) {
-                        int rowY = y + 139 + (i - teamOffset) * 30;
-                        graphics.fill(px, rowY, px + Math.max(70, panelWidth - 222), rowY + 24, SIDEBAR);
-                        graphics.text(font, entries.get(i), px + 9, rowY + 8, FG, true);
-                    }
-                }
-                graphics.text(font, "Only nearby loaded players (up to 32m).", px, y + 313, MUTED, true);
-                graphics.text(font, "No remote tracking or server data access.", px, y + 327, MUTED, true);
-            }
-            case 4 -> {
-                graphics.text(font, "Cape presets render locally on your player.", px, y + 156, MUTED, true);
-                graphics.text(font, "Cape sync with other clients: not implemented.", px, y + 177, MUTED, true);
-                graphics.text(font, "Wave is a vanilla arm animation.", px, y + 195, MUTED, true);
-            }
-            case 5 -> {
-                graphics.text(font, "Experimental: captures loaded blocks only.", px, y + 118, MUTED, true);
-                graphics.text(font, "Saved chunks: " + YukkitToolkitClient.WORLD_CAPTURE.getSavedChunks(),
-                        px, y + 136, FG, true);
-                graphics.text(font, "No inventories, entities or hidden chunks.", px, y + 156, MUTED, true);
-            }
-            case 6 -> {
-                if (ToolkitConfig.INSTANCE.mapPreview) {
-                    ToolkitMap.render(graphics, px + 1, y + 156, 5);
-                    graphics.text(font, "White: you  Cyan: teammate  Red: other", px + 145, y + 168, MUTED, true);
-                    graphics.text(font, "Only loaded terrain & players", px + 145, y + 184, MUTED, true);
-                    graphics.text(font, "X " + ToolkitMap.centerX() + "  Z " + ToolkitMap.centerZ(), px + 145, y + 202, FG, true);
-                } else {
-                    graphics.text(font, "Enable map data to preview terrain.", px, y + 162, MUTED, true);
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mx, int my, float delta) {
+        // Default Screen background and native Minecraft button widgets.
+        super.extractRenderState(graphics, mx, my, delta);
+        graphics.centeredText(font, title, width / 2, 20, 0xFFFFFFFF);
+        if (page == Page.CAMERA) {
+            graphics.centeredText(font, Component.literal("Freecam: WASD / Space / Shift / Sprint"), width / 2, height / 2 + 25, 0xFFAAAAAA);
+            graphics.centeredText(font, Component.literal("Perspective shortcut: V"), width / 2, height / 2 + 39, 0xFFAAAAAA);
+        } else if (page == Page.TEAM) {
+            int left = width / 2 - 154;
+            int top = Math.max(46, height / 2 - 108);
+            var names = ToolkitConfig.INSTANCE.teamMates;
+            if (names != null) {
+                for (int i = teamPage * 3; i < Math.min(names.size(), teamPage * 3 + 3); i++) {
+                    graphics.text(font, names.get(i), left + 8, top + 60 + (i - teamPage * 3) * 25, 0xFFFFFFFF, true);
                 }
             }
-            default -> {}
+            graphics.centeredText(font, Component.literal("Only client-loaded players can be highlighted"), width / 2, height - 57, 0xFFAAAAAA);
+        } else if (page == Page.MAP) {
+            if (ToolkitConfig.INSTANCE.mapPreview) {
+                ToolkitMap.render(graphics, width / 2 - 80, Math.max(108, height / 2 - 65), 1);
+            }
+        } else if (page == Page.WORLD) {
+            graphics.centeredText(font, Component.literal("Experimental: saves loaded chunks only"), width / 2, height / 2, 0xFFAAAAAA);
+            graphics.centeredText(font, Component.literal("Captured chunks: " + YukkitToolkitClient.WORLD_CAPTURE.getSavedChunks()), width / 2, height / 2 + 16, 0xFFFFFFFF);
+        } else if (page == Page.STYLE) {
+            graphics.centeredText(font, Component.literal("Capes are local only. Wave is a vanilla animation."), width / 2, height / 2 + 20, 0xFFAAAAAA);
         }
-        if (!message.isEmpty()) graphics.text(font, message, px, y + panelHeight - 44, 0xFFFFBE63, true);
-        graphics.fill(x + 8, y + panelHeight - 25, x + panelWidth - 8, y + panelHeight - 24, 0xFF273248);
-        graphics.text(font, "YukkitMC / 26.3  /  alpha.5", x + 14, y + panelHeight - 16, MUTED, true);
-        super.extractRenderState(graphics, mx, my, dt);
+        if (!feedback.isEmpty()) {
+            graphics.centeredText(font, Component.literal(feedback), width / 2, height - 58, 0xFFFFAA55);
+        }
     }
 
     @Override
     public boolean keyPressed(KeyEvent event) {
         if (event.key() == InputConstants.KEY_RSHIFT) {
-            closePanel();
+            onClose();
             return true;
         }
         return super.keyPressed(event);
