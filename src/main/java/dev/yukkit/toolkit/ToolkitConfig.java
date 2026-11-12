@@ -21,6 +21,8 @@ public final class ToolkitConfig {
     // 0 = server, 1 = clear, 2 = rain
     public int localWeather = 0;
     public boolean fullbright = false;
+    // 0 = vanilla, 1 = azure, 2 = ember (local visual only)
+    public int capeStyle = 0;
     public boolean keystrokes = true;
     public boolean tntTimer = true;
     public boolean teamHud = true;
@@ -34,6 +36,7 @@ public final class ToolkitConfig {
                 if (loaded != null) {
                     loaded.localTime = Math.floorMod(loaded.localTime, 5);
                     loaded.localWeather = Math.floorMod(loaded.localWeather, 3);
+                    loaded.capeStyle = Math.floorMod(loaded.capeStyle, 3);
                     if (loaded.teamMates == null) loaded.teamMates = new ArrayList<>();
                     return loaded;
                 }

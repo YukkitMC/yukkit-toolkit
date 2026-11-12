@@ -9,7 +9,8 @@
     "LightmapMixin",
     "CameraMixin",
     "EntityLookMixin",
-    "KeyboardInputMixin"
+    "KeyboardInputMixin",
+    "AvatarCapeMixin"
   ],
   "injectors": {
     "defaultRequire": 1

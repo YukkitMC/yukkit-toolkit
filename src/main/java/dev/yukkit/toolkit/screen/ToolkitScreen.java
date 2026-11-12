@@ -6,6 +6,7 @@ import dev.yukkit.toolkit.YukkitToolkitClient;
 import dev.yukkit.toolkit.camera.FreecamController;
 import dev.yukkit.toolkit.camera.PerspectiveController;
 import dev.yukkit.toolkit.performance.PerformanceController;
+import dev.yukkit.toolkit.cosmetics.CapeCosmetics;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -25,7 +26,7 @@ public final class ToolkitScreen extends Screen {
     private static final int BLUE = 0xFF006EFE;
     private static final int FG = 0xFFF5F7FC;
     private static final int MUTED = 0xFF9AA6BE;
-    private static final String[] TABS = {"Visual", "Camera", "Mods", "Team", "Style", "World"};
+    private static final String[] TABS = {"Visual", "Camera", "Mods", "Team Time", "Style", "World"};
     private static int tab = 0;
     private static int teamOffset = 0;
 
@@ -116,7 +117,12 @@ public final class ToolkitScreen extends Screen {
                 });
             }
             case 4 -> {
-                addButton(right, top, bw, 25, "Wave (vanilla arm animation)", () -> {
+                addButton(right, top, bw, 25, "Cape: " + CapeCosmetics.label(), () -> {
+                    cfg.capeStyle = (cfg.capeStyle + 1) % 3;
+                    cfg.save();
+                    refresh();
+                });
+                addButton(right, top + 36, bw, 25, "Wave (vanilla arm animation)", () -> {
                     if (mc.player != null) mc.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
                     closePanel();
                 });
@@ -195,9 +201,9 @@ public final class ToolkitScreen extends Screen {
                 graphics.text(font, "No remote tracking or server data access.", px, y + 327, MUTED, true);
             }
             case 4 -> {
-                graphics.text(font, "Vanilla wave is a single arm swing.", px, y + 123, MUTED, true);
-                graphics.text(font, "Custom cape sync & advanced emotes: planned.", px, y + 147, MUTED, true);
-                graphics.text(font, "Other players need a compatible sync service.", px, y + 161, MUTED, true);
+                graphics.text(font, "Cape presets render locally on your player.", px, y + 156, MUTED, true);
+                graphics.text(font, "Cape sync with other clients: not implemented.", px, y + 177, MUTED, true);
+                graphics.text(font, "Wave is a vanilla arm animation.", px, y + 195, MUTED, true);
             }
             case 5 -> {
                 graphics.text(font, "Experimental: captures loaded blocks only.", px, y + 118, MUTED, true);
