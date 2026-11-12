@@ -93,7 +93,7 @@ public final class ToolkitScreen extends Screen {
             case 3 -> {
                 int fieldW = Math.max(65, bw - 78);
                 nameBox = new EditBox(font, right, top, fieldW, 24, Component.literal("Minecraft nickname"));
-                nameBox.setMaxLength(16);
+                nameBox.setMaxLength(32);
                 nameBox.setHint(Component.literal("Player nickname"));
                 addRenderableWidget(nameBox);
                 addButton(right + fieldW + 6, top, 66, 24, "Add", this::addFriend);
@@ -144,8 +144,8 @@ public final class ToolkitScreen extends Screen {
     private void addFriend() {
         if (nameBox == null) return;
         String name = nameBox.getValue().trim();
-        if (!name.matches("[A-Za-z0-9_]{3,16}")) {
-            message = "Use a valid Minecraft Java nickname.";
+        if (!name.matches("[A-Za-z0-9_.-]{1,32}")) {
+            message = "Use 1-32 letters, digits, dot, _ or -.";
             return;
         }
         ToolkitConfig cfg = ToolkitConfig.INSTANCE;

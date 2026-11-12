@@ -10,7 +10,8 @@
     "CameraMixin",
     "EntityLookMixin",
     "KeyboardInputMixin",
-    "AvatarCapeMixin"
+    "AvatarCapeMixin",
+    "TeamOutlineMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,6 +1,7 @@
 package dev.yukkit.toolkit.hud;
 
 import dev.yukkit.toolkit.ToolkitConfig;
+import dev.yukkit.toolkit.team.TeamNames;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -60,7 +61,7 @@ public final class ToolkitHud {
                         (int) Math.sqrt(distanceSquared) + "m"));
             }
             if (entity instanceof Player player && entity != minecraft.player &&
-                    teamSet.contains(player.getName().getString().toLowerCase(Locale.ROOT)) &&
+                    TeamNames.matches(player) &&
                     distanceSquared <= 64.0 * 64.0) {
                 nearFriends.add(new DistanceRow(distanceSquared,
                         player.getName().getString() + "  " + (int) Math.sqrt(distanceSquared) + "m"));
