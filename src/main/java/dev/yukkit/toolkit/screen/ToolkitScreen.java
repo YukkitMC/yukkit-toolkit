@@ -6,6 +6,8 @@ import dev.yukkit.toolkit.camera.FreecamController;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 
@@ -146,6 +148,15 @@ public final class ToolkitScreen extends Screen {
         context.text(this.font, "RSHIFT TO TOGGLE", x + panelWidth - 130,
                 y + panelHeight - 17, MUTED);
         super.extractRenderState(context, mouseX, mouseY, delta);
+    }
+
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        if (event.key() == InputConstants.KEY_RSHIFT) {
+            closePanel();
+            return true;
+        }
+        return super.keyPressed(event);
     }
 
     @Override
