@@ -14,6 +14,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.component.SwingAnimation;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -116,7 +117,7 @@ public final class ToolkitScreen extends Screen {
             }
             case 4 -> {
                 addButton(right, top, bw, 25, "Wave (vanilla arm animation)", () -> {
-                    if (mc.player != null) mc.player.swing(InteractionHand.MAIN_HAND);
+                    if (mc.player != null) mc.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, true);
                     closePanel();
                 });
             }
