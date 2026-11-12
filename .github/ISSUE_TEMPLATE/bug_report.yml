@@ -1,0 +1,41 @@
+name: Bug report
+description: Report an unexpected problem with an existing feature
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: "Thanks for helping improve Yukkit Toolkit. Never include account tokens or other secrets."
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the problem clearly.
+      placeholder: Tell us what went wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Open Minecraft\n2. ...\n3. ..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Minecraft version, loader, toolkit version/commit, OS
+      placeholder: "Minecraft / loader / toolkit / OS"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshots and sanitized logs
+      description: Remove secrets and sensitive data before posting.

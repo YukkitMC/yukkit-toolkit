@@ -1,0 +1,27 @@
+name: Feature request
+description: Propose a useful change or new client-side tool
+title: "[Feature] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Explain your use case rather than just naming a module.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe how players should interact with the feature.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: limitations
+    attributes:
+      label: Compatibility and server-rule considerations
+      description: Mention relevant Minecraft versions, multiplayer restrictions, and performance concerns.
