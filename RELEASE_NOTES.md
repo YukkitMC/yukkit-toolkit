@@ -1,27 +1,25 @@
-# Yukkit Toolkit v0.1.0-alpha.7
+# Yukkit Toolkit v0.1.0-alpha.8
 
-**Minecraft Java 26.3 · Fabric Loader 0.20.1+ · Java 25**
+**Minecraft Java 26.3 · Fabric · Java 25**
 
-> Experimental pre-release: CI compilation passed, but this build has not been tested in Minecraft. Install it in a separate profile and report crashes with `latest.log`.
+## Team ESP color customization
+- **Default:** Yukkit Blue (`#006EFE`).
+- Choose any of **8 color presets**: Blue, Cyan, Green, Red, Yellow, Purple, White, Orange.
+- Or enter your own hexadecimal color, for example `#FF33AA`, using the vanilla Minecraft input field.
+- Changes are saved in the Yukkit Toolkit local JSON config and take effect on the client-side teammate outline.
+- Access via **RSHIFT → Team → Glow Color** or **ESC → Yukkit Tools → Team → Glow Color**.
+- The existing ESP distance setting is available on the **Team Color** page.
 
-## New in alpha.7
-- **Chest X-Ray**: optional visibility filter for chests, trapped chests, Ender chests and barrels using loaded client data.
-- **Auto Clicker**: hold attack while pointing at an entity; cycle the configured maximum CPS (4–12). Normal combat cooldown and reach still apply.
-- **Auto Miner**: toggle automatic mining of the block pointed at by the crosshair. No pathfinding or distant mining.
-- **Mace Swap**: preselect a mace from your hotbar when falling toward an entity; restore the prior slot when done.
-- **Auto Eat**: select and consume golden carrots from your hotbar below a chosen hunger threshold; restore the previous slot.
-- **Team ESP range**: 64 / 256 / 512 / 2048 / 10000 blocks. **Only entities actually loaded by your client can be highlighted.**
-- A new **Automation** menu page using native Minecraft controls.
-
-## Important
-All new automation features and Chest X-Ray default to **OFF**. Chest X-Ray shares the selective-rendering system with the ore view, and the two filters can be enabled together.
-
-The 10,000-block slider **does not** reveal players the server has not transmitted. Server rules can prohibit automatic combat, mining, block highlighting and through-wall teammate outlines. Rendering mods may interfere with X-Ray.
+## Important limitations
+- Only teammates that the server has already sent to the client can be highlighted.
+- Configured ESP distance does not force the server to load faraway players.
+- The color applies locally and does not modify server scoreboard teams.
+- This build has **compiled successfully in GitHub Actions**, but runtime compatibility with Minecraft, Sodium, Iris or other mods has not been verified.
 
 ## Installation
-1. Use Minecraft **26.3**, **Java 25**, compatible Fabric Loader and Fabric API.
-2. Remove older Yukkit Toolkit JARs from the Modrinth instance `mods` folder.
-3. Place `yukkit-toolkit-0.1.0-alpha.7.jar` in `mods` (do **not** import a ZIP as a Modrinth project).
-4. Press **RSHIFT** or open **ESC → Yukkit Tools**. Use the **Automation**, **Mods** and **Team** pages.
+1. Use Minecraft 26.3 with compatible Fabric Loader, Fabric API and Java 25.
+2. Remove older Yukkit Toolkit JARs from your Modrinth profile's `mods` directory.
+3. Place `yukkit-toolkit-0.1.0-alpha.8.jar` directly in `mods`.
+4. Open the game, use RSHIFT or ESC → Yukkit Tools, and enable Team Glow for your chosen teammates.
 
-Report crash logs at https://github.com/YukkitMC/yukkit-toolkit/issues
+Source: https://github.com/YukkitMC/yukkit-toolkit

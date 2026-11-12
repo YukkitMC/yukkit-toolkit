@@ -19,7 +19,7 @@
 
 Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game options menu, with a focus on straightforward controls, reliable behavior, and low overhead.
 
-> **Early alpha — v0.1.0-alpha.7.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
+> **Early alpha — v0.1.0-alpha.8.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
 
 ## Features
 
@@ -38,6 +38,7 @@ Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game 
 | **Mods** | Lightweight Graphics | Reversible preset for minimal particles, disabled clouds and render distance capped at 8 chunks. Actual FPS gains depend on your hardware and existing settings. |
 | **Team Time** | Nearby teammate list | Add online or offline-mode names (including dots and hyphens); see loaded nearby players and distances. |
 | **Team Time** | Local Team Glow | Optional wall-visible outlines of already-loaded teammates. Client filter: 64, 256, 512, 2,048 or 10,000 blocks; server entity-tracking distance remains unchanged. |
+| **Team Time** | ESP Glow Color | Eight presets (blue default, cyan, green, red, yellow, purple, white, orange) or any valid #RRGGBB hexadecimal color, stored in local settings. |
 | **Automation** | Auto Clicker | Hold left mouse button over an entity; configurable 4–12 CPS ceiling and ordinary attack cooldown. |
 | **Automation** | Auto Miner | Repeatedly mines only the solid block under your crosshair at ordinary reach. |
 | **Automation** | Mace Swap | Preselects a hotbar mace when falling toward a target; returns to previous hotbar selection after leaving that situation. |
@@ -55,7 +56,7 @@ Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game 
 - **Freecam:** WASD to move, mouse to rotate, SPACE to ascend, SNEAK to descend, and SPRINT to accelerate.
 - **Mods page:** Auto Totem, Ore X-Ray, Chest X-Ray, Keystrokes, TNT Timer, Lightweight Graphics and Team HUD.
 - **Automation page:** Auto Clicker, CPS, Auto Miner, Mace Swap, Auto Eat and hunger threshold. All disabled by default.
-- **Team page:** Choose a local ESP filter range up to 10,000 blocks; it does not expand server tracking.
+- **Team page:** Open **Glow Color** to select a color preset or enter a custom `#RRGGBB` code. Team Color also contains the ESP range control (up to 10,000 blocks), which does not expand server tracking.
 - **ESC:** opens the vanilla pause menu with a new **Yukkit Tools** button.
 - **Map tab:** turn the minimap HUD/preview on or off.
 - **Team Time tab:** add/remove nicknames, enable/disable nearby glow.

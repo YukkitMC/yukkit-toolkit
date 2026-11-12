@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.1.0-alpha.8 — 2026-11-12
+
+### Added
+- Customizable teammate glow outline colors (blue by default).
+- Eight preset colors: blue, cyan, green, red, yellow, purple, white and orange.
+- Custom `#RRGGBB` color entry with input validation and preview.
+- Dedicated Team Color page using Minecraft's native button and input widgets.
+
+### Technical
+- Client-side `Entity#getTeamColor` injection applies only to loaded players matched in the saved team list while Team Glow is enabled.
+- Color is stored as a 24-bit RGB value in `config/yukkit-toolkit.json`.
+- Original server scoreboard/team memberships are not modified.
+- ESP range remains a display filter, not a server-tracking extension.
+
+### Known limitations
+- This build has passed Java compilation, but not in-game runtime testing.
+- Actual visibility depends on the server transmitting the player entity and on other rendering mods.
+- Colored outlines may be unavailable if a modded shader pipeline replaces vanilla glowing.
+
+
+
 ## 0.1.0-alpha.7 — 2026-11-12
 
 ### Added
