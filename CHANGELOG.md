@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.1.0-alpha.5 — 2026-11-12
+
+### Added
+- Offline-mode nickname matching with dots, underscores and hyphens.
+- Wall-visible local teammate glow outlines through the client renderer.
+- HUD minimap and native Yukkit Tools Map tab, with sampled surfaces from loaded chunks.
+- Yukkit Tools button in Minecraft's ESC pause menu.
+
+### Improved
+- Team management no longer requires official Java account-name syntax.
+- Team Glow now evaluates the rendered player rather than overwriting server-synchronized flags.
+- The Yukkit Tools main panel uses native Minecraft buttons and understated vanilla-style backgrounds.
+
+### Caution
+- This is a pre-release built by CI and **not yet tested in the running game**.
+- Minimap and team markers operate on client-loaded data only.
+- Users should follow server rules about spectator-camera tools or teammate outlines.
+
+
 ## 0.1.0-alpha.4 — 2026-11-12
 
 ### Added

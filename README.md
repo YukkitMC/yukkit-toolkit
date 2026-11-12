@@ -9,7 +9,7 @@
 [![Build](https://github.com/YukkitMC/yukkit-toolkit/actions/workflows/build.yml/badge.svg)](https://github.com/YukkitMC/yukkit-toolkit/actions/workflows/build.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-006EFE)](LICENSE)
 
-**[Downloads](https://github.com/YukkitMC/yukkit-toolkit/actions/workflows/build.yml) • [Features](#features) • [Contributing](CONTRIBUTING.md) • [Security](SECURITY.md)**
+**[Releases](https://github.com/YukkitMC/yukkit-toolkit/releases) • [Features](#features) • [Contributing](CONTRIBUTING.md) • [Security](SECURITY.md)**
 
 </div>
 
@@ -19,7 +19,7 @@
 
 Yukkit Toolkit combines practical Minecraft tools under a single in-game panel, with a focus on straightforward controls, reliable behavior, and low overhead.
 
-> **Early alpha — v0.1.0-alpha.4.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
+> **Early alpha — v0.1.0-alpha.5.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
 
 ## Features
 
@@ -33,8 +33,10 @@ Yukkit Toolkit combines practical Minecraft tools under a single in-game panel, 
 | **Mods** | Keystrokes | Lightweight WASD, left/right mouse and SPACE HUD. |
 | **Mods** | TNT Timer | Shows countdowns for up to three nearby loaded primed TNT entities. |
 | **Mods** | Lightweight Graphics | Reversible preset for minimal particles, disabled clouds and render distance capped at 8 chunks. Actual FPS gains depend on your hardware and existing settings. |
-| **Team Time** | Nearby teammate list | Enter Minecraft Java usernames and see approximate distances to loaded nearby players. |
-| **Team Time** | Local Team Glow | Optional local highlighting of matching nearby players within 32 blocks. No server-side permissions are changed. |
+| **Team Time** | Nearby teammate list | Add online or offline-mode names (including dots and hyphens); see loaded nearby players and distances. |
+| **Team Time** | Local Team Glow | Optional wall-visible glow outlines of configured teammates up to 64 blocks away, if already loaded by the client. |
+| **Map** | Local minimap | Shows sampled surface blocks from already-loaded chunks and nearby player markers. Includes a map page and optional HUD overlay. |
+| **Menu** | Pause menu integration | Adds a vanilla-style Yukkit Tools button when pressing ESC in-game. |
 | **Style** | Local capes | Two bundled cape designs, **Azure** and **Ember**. Local rendering only. |
 | **Style** | Wave | Simple vanilla arm-swing gesture. Not a custom animated emote. |
 | **World** | World Downloader | Experimental capture of loaded overworld block data into a local Anvil-format world directory. Not a faithful or validated world backup. |
@@ -45,6 +47,8 @@ Yukkit Toolkit combines practical Minecraft tools under a single in-game panel, 
 - **V:** toggle Perspective when no menu is open.
 - **Freecam:** WASD to move, mouse to rotate, SPACE to ascend, SNEAK to descend, and SPRINT to accelerate.
 - **Mods tab:** Keystrokes, TNT Timer, Lightweight Graphics and Team HUD toggles.
+- **ESC:** opens the vanilla pause menu with a new **Yukkit Tools** button.
+- **Map tab:** turn the minimap HUD/preview on or off.
 - **Team Time tab:** add/remove nicknames, enable/disable nearby glow.
 - **Style tab:** select cape preset and run the basic arm animation.
 
@@ -55,6 +59,8 @@ Minecraft **26.3** uses SDL input scancodes rather than the older GLFW keycodes.
 **Cosmetic synchronization.** The included capes render **locally**, not on other people's clients. To show a player's individually selected cape or a custom emote to another user who also has Yukkit Toolkit, a secure synchronization service or an opt-in server relay must be developed. This release does **not** transmit cosmetics, nicknames, profiles or emote data over any network.
 
 **World Downloader.** Captures data only from chunks the client has already received. The alpha exporter does not preserve the world seed, exact biomes, inventories, block entities, structures, mobs or unexplored chunks. The resulting world may not load as expected. It must not be treated as an exact backup and should only be used where server rules permit.
+
+**Map and teammate outlines.** Both are restricted to chunks and players already loaded by the local client. They do not reveal remote players or hidden server data. Team Glow can display client-loaded teammates through blocks and is enabled only when you turn it on.
 
 **Multiplayer rules.** Client-side does not mean every server allows a feature. Verify server policies before using Freecam, World Downloader, Team Glow or other modules. No anti-cheat bypass or server permission escalation is promised.
 
