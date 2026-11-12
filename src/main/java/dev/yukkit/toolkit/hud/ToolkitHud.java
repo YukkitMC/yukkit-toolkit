@@ -2,6 +2,7 @@ package dev.yukkit.toolkit.hud;
 
 import dev.yukkit.toolkit.ToolkitConfig;
 import dev.yukkit.toolkit.team.TeamNames;
+import dev.yukkit.toolkit.map.ToolkitMap;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -81,6 +82,7 @@ public final class ToolkitHud {
         if (minecraft.player == null || minecraft.gui.hud.isHidden()) return;
         ToolkitConfig config = ToolkitConfig.INSTANCE;
         if (config.keystrokes) renderKeystrokes(minecraft, graphics);
+        if (config.minimap) ToolkitMap.render(graphics, 8, 32, 3);
         int y = 12;
         if (config.tntTimer && !tnt.isEmpty()) {
             y = renderRows(minecraft, graphics, "TNT TIMER", tnt, y, 0xFFFFC55A);

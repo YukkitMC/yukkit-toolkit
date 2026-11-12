@@ -24,6 +24,8 @@ public final class ToolkitConfig {
     // 0 = vanilla, 1 = azure, 2 = ember (local visual only)
     public int capeStyle = 0;
     public boolean keystrokes = true;
+    public boolean minimap = true;
+    public boolean mapPreview = true;
     public boolean tntTimer = true;
     public boolean teamHud = true;
     public boolean teamGlow = false;
