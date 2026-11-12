@@ -45,7 +45,7 @@ public final class WorldCapture {
 
     public void start(Minecraft client) {
         if (client.level == null || client.player == null) return;
-        if (client.level.getRegistryKey() != World.OVERWORLD) {
+        if (client.level.dimension() != Level.OVERWORLD) {
             YukkitToolkitClient.notifyPlayer("World Downloader alpha currently supports only the Overworld.");
             return;
         }
@@ -71,14 +71,14 @@ public final class WorldCapture {
 
     public void tick(Minecraft client) {
         if (!capturing || client.level == null || client.player == null) return;
-        if (client.level.getRegistryKey() != World.OVERWORLD) {
+        if (client.level.dimension() != Level.OVERWORLD) {
             stop();
             YukkitToolkitClient.notifyPlayer("World capture stopped after a dimension change.");
             return;
         }
         if (++ticks % 8 != 0) return; // Limit synchronous disk writes.
-        int cx = client.player.chunkPosition().x;
-        int cz = client.player.chunkPosition().z;
+        int cx = client.player.chunkPosition().x();
+        int cz = client.player.chunkPosition().z();
         final int radius = 6;
         for (int d = 0; d <= radius; d++) {
             for (int dz = -d; dz <= d; dz++) {
@@ -129,7 +129,7 @@ public final class WorldCapture {
         data.put("Version", version);
 
         ListTag enabledFeatures = new ListTag();
-        enabledFeatures.add(StringTag.of("minecraft:vanilla"));
+        enabledFeatures.add(StringTag.valueOf("minecraft:vanilla"));
         data.put("enabled_features", enabledFeatures);
         CompoundTag settings = new CompoundTag();
         settings.putLong("seed", 0L); // Unknown server seed; avoid claiming original world generation.
@@ -162,9 +162,9 @@ public final class WorldCapture {
     }
 
     private static void saveChunk(LevelChunk chunk, Path regionDir) throws IOException {
-        int cx = chunk.getPos().x;
-        int cz = chunk.getPos().z;
-        int baseY = chunk.getBottomY();
+        int cx = chunk.getPos().x();
+        int cz = chunk.getPos().z();
+        int baseY = chunk.getMinY();
         int height = chunk.getHeight();
 
         CompoundTag tag = new CompoundTag();
@@ -209,7 +209,7 @@ public final class WorldCapture {
             section.put("block_states", states);
             CompoundTag biome = new CompoundTag();
             ListTag biomePalette = new ListTag();
-            biomePalette.add(StringTag.of("minecraft:plains"));
+            biomePalette.add(StringTag.valueOf("minecraft:plains"));
             biome.put("palette", biomePalette); // Biome data not yet captured in alpha.
             section.put("biomes", biome);
             sections.add(section);
@@ -248,11 +248,9 @@ public final class WorldCapture {
     private static CompoundTag serializeState(BlockState state) {
         CompoundTag compound = new CompoundTag();
         compound.putString("Name", BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString());
-        if (!state.getValues().isEmpty()) {
+        if (state.getValues().findAny().isPresent()) {
             CompoundTag properties = new CompoundTag();
-            for (Map.Entry<Property<?>, Comparable<?>> e : state.getValues().entrySet()) {
-                properties.putString(e.getKey().getName(), propertyValue(e.getKey(), e.getValue()));
-            }
+            state.getValues().forEach(v -> properties.putString(v.property().getName(), v.valueName()));
             compound.put("Properties", properties);
         }
         return compound;

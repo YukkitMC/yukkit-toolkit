@@ -103,15 +103,15 @@ public final class ToolkitScreen extends Screen {
     }
 
     private void refresh() {
-        if (client != null) client.gui.setScreen(new ToolkitScreen());
+        if (minecraft != null) minecraft.gui.setScreen(new ToolkitScreen());
     }
 
     private void closePanel() {
-        if (client != null) client.gui.setScreen(null);
+        if (minecraft != null) minecraft.gui.setScreen(null);
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         context.fill(0, 0, width, height, 0xBA000000);
         context.fill(x, y, x + panelWidth, y + panelHeight, BG);
         context.fill(x, y, x + 4, y + panelHeight, BLUE);

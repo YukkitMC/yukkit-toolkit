@@ -62,9 +62,9 @@ public final class FreecamController {
         double radians = Math.toRadians(yaw);
         Vec3 motion = new Vec3(-Math.sin(radians) * forward - Math.cos(radians) * side,
                 vertical, Math.cos(radians) * forward - Math.sin(radians) * side);
-        if (motion.lengthSquared() > 0.0) {
+        if (motion.lengthSqr() > 0.0) {
             double speed = client.options.keySprint.isDown() ? 1.5 : 0.42;
-            position = position.add(motion.normalize().multiply(speed));
+            position = position.add(motion.normalize().scale(speed));
         }
     }
 }

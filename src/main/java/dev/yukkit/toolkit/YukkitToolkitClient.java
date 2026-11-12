@@ -47,6 +47,6 @@ public final class YukkitToolkitClient implements ClientModInitializer {
 
     public static void notifyPlayer(String message) {
         Minecraft client = Minecraft.getInstance();
-        if (client.player != null) client.player.sendMessage(Component.literal("[Yukkit] " + message), false);
+        if (client.player != null) client.player.sendSystemMessage(Component.literal("[Yukkit] " + message));
     }
 }
