@@ -1,31 +1,38 @@
-# Yukkit Toolkit v0.1.0-alpha.5
+# Yukkit Toolkit v0.1.0-alpha.6
 
-**Minecraft Java 26.3 · Fabric Loader 0.20.1 · Java 25**
+**Minecraft Java 26.3 · Fabric Loader 0.20.1+ · Java 25**
 
-This is an **experimental pre-release**, not a stable or fully tested Minecraft build. Back up your worlds and test it in a separate Modrinth instance.
+> **Experimental pre-release:** Source compiled through GitHub Actions; runtime integration with Minecraft and other client mods has not been tested in this environment. Use a separate test profile and back up important worlds.
 
-## What's new
-- **Offline-mode teammate names:** Support usernames containing dots (`.`), underscores (`_`) and hyphens (`-`) up to 32 characters. Names are matched locally against loaded players.
-- **Team outlines:** Render local glowing outlines of configured teammates (up to 64 blocks away) through solid blocks, without modifying the player's server-side flags.
-- **Minimap:** 25×25 surface preview from already-loaded terrain, with colored markers for nearby players and teammates.
-- **Map page:** A separate Map tab inside Yukkit Tools, with HUD/preview toggles.
-- **Vanilla pause menu:** The ESC menu now includes a native **Yukkit Tools** button and returns to the pause menu when closed using RSHIFT or X.
-- **Interface refinements:** Native Minecraft buttons with more restrained dark panels.
+## Vanilla UI rebuild
 
-## Existing features
-Freecam, Perspective (V), Time Changer, Weather Changer, Keystrokes, TNT Timer, team list, basic local capes, and experimental World Downloader.
+The dark custom ClickGUI has been replaced by a multi-page menu made entirely with **Minecraft's native `Screen`, `Button` and `EditBox` widgets**. Expect Minecraft's default menu background and gray interactive buttons, a centered title, two-column option layout and bottom action buttons.
 
-## Limitations
-- Not tested in-game yet. A successful Java compilation does not guarantee all Mixins and mods work together at runtime.
-- Map and outlines only use **client-loaded** chunks and entities. No remote coordinates, world seed, inventories, or invisible server data are retrieved.
-- Custom cosmetic sharing between users is **not yet implemented**.
-- World Downloader remains experimental; exported saves may be incomplete or invalid.
-- Client-side outlines or Freecam may be prohibited by individual server rules.
+Access Yukkit Tools with **Right Shift** in-game or with **ESC → Yukkit Tools**. Existing features are grouped into Visual, Camera, Mods, Team, Cosmetics, World and Map.
+
+## New features
+
+- **Auto Totem:** optional automatic inventory-to-offhand swap when your offhand is empty, via ordinary client inventory interactions. Disabled by default; does not discard an occupied offhand item.
+- **Ore X-Ray:** optional client-side block-model filtering, preserving standard ore models and ancient debris while hiding non-ore block models. Enabling/disabling triggers chunk geometry rebuilding. Disabled by default.
+- **Higher-resolution terrain map:** one surface-block sample per pixel instead of one every four blocks. 88×88 cached image, bounded to six raster rows per tick, plus merged same-color draw runs. This reduces the old large pixel blocks but is not a fully textured topographic map.
+
+## Existing modules
+
+Freecam, Perspective, local Time/Weather, Fullbright, Keystrokes, TNT Timer, optional Team Glow, local capes, vanilla Wave animation and experimental World Downloader.
+
+## Warnings and limits
+
+- **X-Ray** is limited to blocks that the client has actually received. Anti-X-Ray plugins may hide/substitute ores. Other rendering mods and shaders may have incompatibilities. Chunk rebuilds can briefly affect performance.
+- **Auto Totem** only interacts with the player's own inventory when no container/menu is open. Server rules may prohibit automated item swaps.
+- The map is sampled from client-loaded terrain and is *not* Xaero's World Map or a complete downloaded map.
+- The World Downloader is experimental and cannot create a faithful server backup.
+- A green CI build proves compilation only, not successful in-game operation.
 
 ## Installation
-1. Use Minecraft **26.3**, **Fabric Loader 0.20.1+**, and a matching **Fabric API**.
-2. Remove older `yukkit-toolkit` versions from your Modrinth profile's `mods` directory.
-3. Place **`yukkit-toolkit-0.1.0-alpha.5.jar`** (not a ZIP) into `mods`.
-4. Launch Minecraft and press **RSHIFT**. ESC also exposes a **Yukkit Tools** button.
 
-See the [source code](https://github.com/YukkitMC/yukkit-toolkit) and [changelog](CHANGELOG.md).
+1. Use Minecraft Java **26.3** with **Java 25**, Fabric Loader and compatible Fabric API.
+2. Remove all older `yukkit-toolkit-*.jar` files from the instance's `mods` folder.
+3. Place **`yukkit-toolkit-0.1.0-alpha.6.jar`** directly in `mods`; do not import the workflow ZIP as a Modrinth project.
+4. Launch a test world, press **RSHIFT**, and test features individually.
+
+Full source: https://github.com/YukkitMC/yukkit-toolkit

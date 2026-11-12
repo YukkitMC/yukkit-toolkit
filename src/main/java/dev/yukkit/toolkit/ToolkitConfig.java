@@ -31,7 +31,7 @@ public final class ToolkitConfig {
     /** Optional inventory assistance, disabled until the player enables it. */
     public boolean autoTotem = false;
     /** Optional client-side ore-only block rendering. */
-    public boolean xray = false;
+    public volatile boolean xray = false;
     public boolean teamGlow = false;
     public List<String> teamMates = new ArrayList<>();
 

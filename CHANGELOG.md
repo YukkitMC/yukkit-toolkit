@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.1.0-alpha.6 — 2026-11-12
+
+### Added
+- Auto Totem for refilling an empty offhand from standard player inventory using normal inventory interactions.
+- Ore X-Ray rendering mode with ore whitelist and a chunk-rebuild action on toggling.
+- Full vanilla-style menu pages with default Minecraft backgrounds, native gray buttons, centered titles and footer controls.
+
+### Improved
+- Map resolution from 25 coarse cells (4 blocks per sample) to 88 cells (1 block per sample).
+- Map data is refreshed over multiple ticks instead of scanning the whole image in one tick.
+- The minmap renders cached colors and combines identical neighboring pixels into horizontal draw runs.
+
+### Known limitations
+- No actual in-game runtime or modpack compatibility test is available yet.
+- Auto Totem and X-Ray are disabled by default. Follow individual server rules.
+- X-Ray relies on vanilla rendering hooks and may conflict with Sodium, shaders or culling mods.
+- 88x88 maps are still stylized surface previews, not fully textured world maps.
+
+
 ## 0.1.0-alpha.5 — 2026-11-12
 
 ### Added
