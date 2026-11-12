@@ -19,7 +19,7 @@ public final class TeamGlow {
         return ToolkitConfig.INSTANCE.teamGlow &&
                 mc != null && mc.player != null && mc.level != null &&
                 player != mc.player && player.level() == mc.level &&
-                player.distanceToSqr(mc.player) <= 64.0 * 64.0 &&
+                player.distanceToSqr(mc.player) <= (double) ToolkitConfig.INSTANCE.teamGlowRange * ToolkitConfig.INSTANCE.teamGlowRange &&
                 TeamNames.matches(player);
     }
 

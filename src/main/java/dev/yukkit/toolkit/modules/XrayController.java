@@ -15,7 +15,18 @@ import net.minecraft.world.level.block.state.BlockState;
 public final class XrayController {
     private XrayController() {}
 
-    public static boolean enabled() { return ToolkitConfig.INSTANCE.xray; }
+    public static boolean enabled() { return ToolkitConfig.INSTANCE.xray || ToolkitConfig.INSTANCE.chestXray; }
+
+    public static boolean keep(BlockState state) {
+        if (state == null) return false;
+        return (ToolkitConfig.INSTANCE.xray && isOre(state))
+                || (ToolkitConfig.INSTANCE.chestXray && isChest(state.getBlock()));
+    }
+
+    public static boolean isChest(Block b) {
+        return b == Blocks.CHEST || b == Blocks.TRAPPED_CHEST || b == Blocks.ENDER_CHEST
+                || b == Blocks.BARREL;
+    }
 
     public static boolean isOre(BlockState state) { return state != null && isOre(state.getBlock()); }
 
@@ -34,6 +45,13 @@ public final class XrayController {
     public static void toggle(Minecraft client) {
         ToolkitConfig cfg = ToolkitConfig.INSTANCE;
         cfg.xray = !cfg.xray;
+        cfg.save();
+        refreshChunks(client);
+    }
+
+    public static void toggleChest(Minecraft client) {
+        ToolkitConfig cfg = ToolkitConfig.INSTANCE;
+        cfg.chestXray = !cfg.chestXray;
         cfg.save();
         refreshChunks(client);
     }

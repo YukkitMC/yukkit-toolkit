@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class XrayBlockMixin {
     @Inject(method = "getRenderShape", at = @At("HEAD"), cancellable = true)
     private void yukkit$hideNonOres(BlockState state, CallbackInfoReturnable<RenderShape> cir) {
-        if (XrayController.enabled() && !XrayController.isOre(state)) {
+        if (XrayController.enabled() && !XrayController.keep(state)) {
             cir.setReturnValue(RenderShape.INVISIBLE);
         }
     }

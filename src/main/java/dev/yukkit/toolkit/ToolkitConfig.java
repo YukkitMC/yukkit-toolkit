@@ -32,7 +32,11 @@ public final class ToolkitConfig {
     public boolean autoTotem = false;
     /** Optional client-side ore-only block rendering. */
     public volatile boolean xray = false;
+    /** Only previously received chest blocks can be rendered. */
+    public volatile boolean chestXray = false;
     public boolean teamGlow = false;
+    /** User-selected filter distance; actual server-tracked entity distance may be much shorter. */
+    public int teamGlowRange = 64;
     public List<String> teamMates = new ArrayList<>();
 
     private static ToolkitConfig load() {
@@ -43,6 +47,7 @@ public final class ToolkitConfig {
                     loaded.localTime = Math.floorMod(loaded.localTime, 5);
                     loaded.localWeather = Math.floorMod(loaded.localWeather, 3);
                     loaded.capeStyle = Math.floorMod(loaded.capeStyle, 3);
+                    loaded.teamGlowRange = sanitizeTeamRange(loaded.teamGlowRange);
                     if (loaded.teamMates == null) loaded.teamMates = new ArrayList<>();
                     return loaded;
                 }
@@ -60,6 +65,13 @@ public final class ToolkitConfig {
         } catch (Exception e) {
             YukkitToolkitClient.LOGGER.warn("Could not save Yukkit Toolkit settings", e);
         }
+    }
+
+    public static int sanitizeTeamRange(int range) {
+        return switch (range) {
+            case 64, 256, 512, 2048, 10000 -> range;
+            default -> 64;
+        };
     }
 
     public String timeLabel() {

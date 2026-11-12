@@ -63,7 +63,7 @@ public final class ToolkitHud {
             }
             if (entity instanceof Player player && entity != minecraft.player &&
                     TeamNames.matches(player) &&
-                    distanceSquared <= 64.0 * 64.0) {
+                    distanceSquared <= (double) config.teamGlowRange * config.teamGlowRange) {
                 nearFriends.add(new DistanceRow(distanceSquared,
                         player.getName().getString() + "  " + (int) Math.sqrt(distanceSquared) + "m"));
             }
