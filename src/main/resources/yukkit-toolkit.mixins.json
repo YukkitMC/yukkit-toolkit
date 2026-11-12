@@ -15,7 +15,8 @@
     "PauseScreenMixin",
     "XrayBlockMixin",
     "XrayOcclusionMixin",
-    "TeamColorMixin"
+    "TeamColorMixin",
+    "ChestEspCleanupMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -19,8 +19,7 @@ public abstract class XrayOcclusionMixin {
 
     @Inject(method = "getFaceOcclusionShape", at = @At("HEAD"), cancellable = true)
     private void yukkit$noOcclusion(Direction face, CallbackInfoReturnable<VoxelShape> cir) {
-        if (XrayController.enabled() && !(dev.yukkit.toolkit.ToolkitConfig.INSTANCE.xray && XrayController.isOre(getBlock()))
-                && !(dev.yukkit.toolkit.ToolkitConfig.INSTANCE.chestXray && XrayController.isChest(getBlock()))) {
+        if (XrayController.enabled() && !XrayController.isOre(getBlock())) {
             cir.setReturnValue(Shapes.empty());
         }
     }
