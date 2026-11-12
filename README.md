@@ -19,7 +19,7 @@
 
 Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game options menu, with a focus on straightforward controls, reliable behavior, and low overhead.
 
-> **Early alpha — v0.1.0-alpha.8.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
+> **Early alpha — v0.1.0-alpha.9.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
 
 ## Features
 
@@ -32,7 +32,7 @@ Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game 
 | **Camera** | Perspective | Rotate the camera independently of your character. Default keyboard shortcut: **V**. |
 | **Mods** | Auto Totem | Optional inventory totem refill when the offhand is empty; uses ordinary inventory swaps. Disabled by default. |
 | **Mods** | Ore X-Ray | Optional ore-only client-side block rendering with chunk rebuild. Disabled by default. |
-| **Mods** | Chest X-Ray | Optional chest, trapped chest, Ender chest and barrel filter. Uses already-received block data. |
+| **Mods** | Chest ESP | Highlights nearby chests, trapped chests, Ender chests and barrels with translucent blue boxes visible through walls, without hiding terrain. |
 | **Mods** | Keystrokes | Lightweight WASD, left/right mouse and SPACE HUD. |
 | **Mods** | TNT Timer | Shows countdowns for up to three nearby loaded primed TNT entities. |
 | **Mods** | Lightweight Graphics | Reversible preset for minimal particles, disabled clouds and render distance capped at 8 chunks. Actual FPS gains depend on your hardware and existing settings. |
@@ -54,7 +54,7 @@ Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game 
 - **Right Shift:** open/close the Yukkit Toolkit panel.
 - **V:** toggle Perspective when no menu is open.
 - **Freecam:** WASD to move, mouse to rotate, SPACE to ascend, SNEAK to descend, and SPRINT to accelerate.
-- **Mods page:** Auto Totem, Ore X-Ray, Chest X-Ray, Keystrokes, TNT Timer, Lightweight Graphics and Team HUD.
+- **Mods page:** Auto Totem, Ore X-Ray, Chest ESP, Keystrokes, TNT Timer, Lightweight Graphics and Team HUD.
 - **Automation page:** Auto Clicker, CPS, Auto Miner, Mace Swap, Auto Eat and hunger threshold. All disabled by default.
 - **Team page:** Open **Glow Color** to select a color preset or enter a custom `#RRGGBB` code. Team Color also contains the ESP range control (up to 10,000 blocks), which does not expand server tracking.
 - **ESC:** opens the vanilla pause menu with a new **Yukkit Tools** button.
@@ -72,7 +72,7 @@ Minecraft **26.3** uses SDL input scancodes rather than the older GLFW keycodes.
 
 **Auto Totem.** Only triggers for an empty offhand in the ordinary player inventory; it does not drop an item already held in the offhand. Some servers forbid automation.
 
-**Chest X-Ray.** Applies the same selective-rendering approach to normal chests, trapped chests, Ender chests and barrels. Animated chest models, shader pipelines, server-side restrictions and mod compatibility may affect visibility; this is an experimental client-only view, not a scan of server storage.
+**Chest ESP.** When enabled, all ordinary blocks stay visible. A separate depth-independent, translucent blue 3D box marks detected chests, trapped chests, Ender chests and barrels (up to 96 within about 64 blocks) using block entities from loaded client chunks. It doesn't expose contents, discover unloaded blocks, or render the actual chest texture through terrain. This is an experimental overlay and may not work with every graphics mod or shader.
 
 **Automatic gameplay tools.** Auto Clicker only operates while the attack key is held with an entity under the crosshair. Auto Miner only targets the current ray-traced block within reach. Mace Swap preselects a mace during a fall and does not guarantee a smash attack. Auto Eat uses golden carrots already on the hotbar. All are disabled by default; users must follow server rules.
 

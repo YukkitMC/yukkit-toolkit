@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.1.0-alpha.9 — 2026-11-12
+
+### Fixed
+- Chest X-Ray no longer makes nearby terrain, buildings, and other block models invisible.
+- Chest highlighting has been separated from the existing ore-only X-Ray toggle.
+
+### Changed
+- Replaced the Chest X-Ray filter with **Chest ESP**: translucent blue 3D markers rendered through walls without touching normal world geometry.
+- Detects nearby client-loaded chests, trapped chests, Ender chests and barrels. Scans every 20 game ticks, limits the search to loaded chunks within roughly 64 blocks, and caps rendered boxes at 96.
+- Updated the GPU drawing code for Minecraft 26.3's Renderpearl API; compilation verified in CI.
+
+### Caveats
+- Highlights are transparent box overlays, not textured chest models drawn through walls.
+- Some shader/optimization mods may interfere; in-game behavior remains unverified.
+- The server must have already sent the chunk and block entity to the client.
+- Ore X-Ray remains a separate feature that deliberately hides non-ore block models.
+
+
+
 ## 0.1.0-alpha.8 — 2026-11-12
 
 ### Added
