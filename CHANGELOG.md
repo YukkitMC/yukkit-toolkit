@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.1.0-alpha.7 — 2026-11-12
+
+### Added
+- Chest X-Ray toggle: keep chest, trapped chest, Ender chest and barrel rendering when other block models are hidden.
+- Team ESP/Glow range choices: 64, 256, 512, 2048 and 10000 blocks, within client-loaded entity visibility.
+- Auto Clicker with adjustable CPS cap; attacks the entity under the crosshair while holding attack, following the local attack cooldown.
+- Auto Miner for the block currently pointed at, using normal client game mode mining calls.
+- Mace Swap to temporarily select a hotbar mace when falling toward an entity.
+- Auto Eat for hotbar golden carrots, with adjustable hunger threshold and slot restoration.
+- Native Minecraft-style Automation menu page and new controls on Mods and Team pages.
+
+### Known limitations
+- **Not yet run inside Minecraft** with other mods. Compilation success is not a runtime compatibility test.
+- Chest rendering may vary with other block-entity renderer and optimization mods.
+- Long-range ESP cannot discover players not already sent by the game server.
+- Mace Swap only preselects the mace; success depends on player timing and server rules.
+- Auto Clicker and Auto Miner do not add aim assistance, reach, pathfinding or bypass server rules.
+- Automatic gameplay tools are disabled by default.
+
+
+
 ## 0.1.0-alpha.6 — 2026-11-12
 
 ### Added
