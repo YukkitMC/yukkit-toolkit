@@ -1,19 +1,19 @@
 package dev.yukkit.toolkit.world;
 
 import dev.yukkit.toolkit.YukkitToolkitClient;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
-import net.minecraft.registry.Registries;
-import net.minecraft.state.property.Property;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.ChunkStatus;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.network.chat.Component;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -43,15 +43,15 @@ public final class WorldCapture {
     public boolean isCapturing() { return capturing; }
     public int getSavedChunks() { return saved.size(); }
 
-    public void start(MinecraftClient client) {
-        if (client.world == null || client.player == null) return;
-        if (client.world.getRegistryKey() != World.OVERWORLD) {
+    public void start(Minecraft client) {
+        if (client.level == null || client.player == null) return;
+        if (client.level.getRegistryKey() != World.OVERWORLD) {
             YukkitToolkitClient.notifyPlayer("World Downloader alpha currently supports only the Overworld.");
             return;
         }
         try {
             String stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
-            saveFolder = client.runDirectory.toPath().resolve("saves").resolve("YukkitCapture-" + stamp);
+            saveFolder = client.gameDirectory.toPath().resolve("saves").resolve("YukkitCapture-" + stamp);
             Files.createDirectories(saveFolder.resolve("region"));
             writeLevelDat(client, saveFolder);
             saved.clear();
@@ -69,16 +69,16 @@ public final class WorldCapture {
         capturing = false;
     }
 
-    public void tick(MinecraftClient client) {
-        if (!capturing || client.world == null || client.player == null) return;
-        if (client.world.getRegistryKey() != World.OVERWORLD) {
+    public void tick(Minecraft client) {
+        if (!capturing || client.level == null || client.player == null) return;
+        if (client.level.getRegistryKey() != World.OVERWORLD) {
             stop();
             YukkitToolkitClient.notifyPlayer("World capture stopped after a dimension change.");
             return;
         }
         if (++ticks % 8 != 0) return; // Limit synchronous disk writes.
-        int cx = client.player.getChunkPos().x;
-        int cz = client.player.getChunkPos().z;
+        int cx = client.player.chunkPosition().x;
+        int cz = client.player.chunkPosition().z;
         final int radius = 6;
         for (int d = 0; d <= radius; d++) {
             for (int dz = -d; dz <= d; dz++) {
@@ -88,7 +88,8 @@ public final class WorldCapture {
                     int z = cz + dz;
                     long key = ((long) x << 32) ^ (z & 0xFFFFFFFFL);
                     if (saved.contains(key)) continue;
-                    WorldChunk chunk = client.world.getChunkManager().getChunk(x, z, ChunkStatus.FULL, false);
+                    var candidate = client.level.getChunkSource().getChunk(x, z, ChunkStatus.FULL, false);
+                    if (!(candidate instanceof LevelChunk chunk)) continue;
                     if (chunk == null) continue;
                     try {
                         saveChunk(chunk, saveFolder.resolve("region"));
@@ -104,9 +105,9 @@ public final class WorldCapture {
         }
     }
 
-    private static void writeLevelDat(MinecraftClient client, Path root) throws IOException {
-        NbtCompound data = new NbtCompound();
-        data.putInt("DataVersion", 3955);
+    private static void writeLevelDat(Minecraft client, Path root) throws IOException {
+        CompoundTag data = new CompoundTag();
+        data.putInt("DataVersion", 5023);
         data.putString("LevelName", root.getFileName().toString());
         data.putInt("GameType", 1);
         data.putBoolean("allowCommands", true);
@@ -115,44 +116,44 @@ public final class WorldCapture {
         data.putLong("LastPlayed", System.currentTimeMillis());
         data.putLong("Time", 6000L);
         data.putLong("DayTime", 6000L);
-        data.putInt("SpawnX", client.player.getBlockX());
-        data.putInt("SpawnY", client.player.getBlockY());
-        data.putInt("SpawnZ", client.player.getBlockZ());
+        data.putInt("SpawnX", client.player.blockPosition().getX());
+        data.putInt("SpawnY", client.player.blockPosition().getY());
+        data.putInt("SpawnZ", client.player.blockPosition().getZ());
         data.putBoolean("WasModded", true);
         data.putString("generatorName", "default");
-        NbtCompound version = new NbtCompound();
-        version.putInt("Id", 3955);
-        version.putString("Name", "1.21.1");
+        CompoundTag version = new CompoundTag();
+        version.putInt("Id", 5023);
+        version.putString("Name", "26.3");
         version.putBoolean("Snapshot", false);
         version.putInt("Series", 0);
         data.put("Version", version);
 
-        NbtList enabledFeatures = new NbtList();
-        enabledFeatures.add(NbtString.of("minecraft:vanilla"));
+        ListTag enabledFeatures = new ListTag();
+        enabledFeatures.add(StringTag.of("minecraft:vanilla"));
         data.put("enabled_features", enabledFeatures);
-        NbtCompound settings = new NbtCompound();
+        CompoundTag settings = new CompoundTag();
         settings.putLong("seed", 0L); // Unknown server seed; avoid claiming original world generation.
         settings.putBoolean("generate_features", true);
         settings.putBoolean("bonus_chest", false);
-        NbtCompound dimensions = new NbtCompound();
+        CompoundTag dimensions = new CompoundTag();
         dimensions.put("minecraft:overworld", dimension("minecraft:overworld", "minecraft:overworld", "minecraft:overworld"));
         dimensions.put("minecraft:the_nether", dimension("minecraft:the_nether", "minecraft:nether", "minecraft:nether"));
         dimensions.put("minecraft:the_end", dimension("minecraft:the_end", "minecraft:end", "minecraft:the_end"));
         settings.put("dimensions", dimensions);
         data.put("WorldGenSettings", settings);
 
-        NbtCompound rootTag = new NbtCompound();
+        CompoundTag rootTag = new CompoundTag();
         rootTag.put("Data", data);
         NbtIo.writeCompressed(rootTag, root.resolve("level.dat"));
     }
 
-    private static NbtCompound dimension(String type, String noise, String biomePreset) {
-        NbtCompound entry = new NbtCompound();
+    private static CompoundTag dimension(String type, String noise, String biomePreset) {
+        CompoundTag entry = new CompoundTag();
         entry.putString("type", type);
-        NbtCompound generator = new NbtCompound();
+        CompoundTag generator = new CompoundTag();
         generator.putString("type", "minecraft:noise");
         generator.putString("settings", noise);
-        NbtCompound biomes = new NbtCompound();
+        CompoundTag biomes = new CompoundTag();
         biomes.putString("type", "minecraft:multi_noise");
         biomes.putString("preset", biomePreset);
         generator.put("biome_source", biomes);
@@ -160,14 +161,14 @@ public final class WorldCapture {
         return entry;
     }
 
-    private static void saveChunk(WorldChunk chunk, Path regionDir) throws IOException {
+    private static void saveChunk(LevelChunk chunk, Path regionDir) throws IOException {
         int cx = chunk.getPos().x;
         int cz = chunk.getPos().z;
         int baseY = chunk.getBottomY();
         int height = chunk.getHeight();
 
-        NbtCompound tag = new NbtCompound();
-        tag.putInt("DataVersion", 3955);
+        CompoundTag tag = new CompoundTag();
+        tag.putInt("DataVersion", 5023);
         tag.putInt("xPos", cx);
         tag.putInt("yPos", Math.floorDiv(baseY, 16));
         tag.putInt("zPos", cz);
@@ -176,11 +177,11 @@ public final class WorldCapture {
         tag.putLong("InhabitedTime", 0L);
         tag.putBoolean("isLightOn", false);
 
-        NbtList sections = new NbtList();
-        BlockPos.Mutable pos = new BlockPos.Mutable();
+        ListTag sections = new ListTag();
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int y0 = baseY; y0 < baseY + height; y0 += 16) {
             Map<BlockState, Integer> indices = new HashMap<>();
-            NbtList palette = new NbtList();
+            ListTag palette = new ListTag();
             int[] data = new int[4096];
             int idx = 0;
             for (int y = 0; y < 16; y++) {
@@ -197,32 +198,32 @@ public final class WorldCapture {
                     }
                 }
             }
-            NbtCompound section = new NbtCompound();
+            CompoundTag section = new CompoundTag();
             section.putByte("Y", (byte) Math.floorDiv(y0, 16));
-            NbtCompound states = new NbtCompound();
+            CompoundTag states = new CompoundTag();
             states.put("palette", palette);
             if (palette.size() > 1) {
                 int bits = Math.max(4, 32 - Integer.numberOfLeadingZeros(palette.size() - 1));
                 states.putLongArray("data", pack(data, bits));
             }
             section.put("block_states", states);
-            NbtCompound biome = new NbtCompound();
-            NbtList biomePalette = new NbtList();
-            biomePalette.add(NbtString.of("minecraft:plains"));
+            CompoundTag biome = new CompoundTag();
+            ListTag biomePalette = new ListTag();
+            biomePalette.add(StringTag.of("minecraft:plains"));
             biome.put("palette", biomePalette); // Biome data not yet captured in alpha.
             section.put("biomes", biome);
             sections.add(section);
         }
         tag.put("sections", sections);
-        tag.put("block_entities", new NbtList());
-        tag.put("block_ticks", new NbtList());
-        tag.put("fluid_ticks", new NbtList());
-        NbtCompound structures = new NbtCompound();
-        structures.put("starts", new NbtCompound());
-        structures.put("References", new NbtCompound());
+        tag.put("block_entities", new ListTag());
+        tag.put("block_ticks", new ListTag());
+        tag.put("fluid_ticks", new ListTag());
+        CompoundTag structures = new CompoundTag();
+        structures.put("starts", new CompoundTag());
+        structures.put("References", new CompoundTag());
         tag.put("structures", structures);
 
-        NbtCompound heightmaps = new NbtCompound();
+        CompoundTag heightmaps = new CompoundTag();
         int[] heights = new int[256];
         for (int z = 0; z < 16; z++) {
             for (int x = 0; x < 16; x++) {
@@ -244,12 +245,12 @@ public final class WorldCapture {
         writeRegion(regionDir, cx, cz, tag);
     }
 
-    private static NbtCompound serializeState(BlockState state) {
-        NbtCompound compound = new NbtCompound();
-        compound.putString("Name", Registries.BLOCK.getId(state.getBlock()).toString());
-        if (!state.getEntries().isEmpty()) {
-            NbtCompound properties = new NbtCompound();
-            for (Map.Entry<Property<?>, Comparable<?>> e : state.getEntries().entrySet()) {
+    private static CompoundTag serializeState(BlockState state) {
+        CompoundTag compound = new CompoundTag();
+        compound.putString("Name", BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString());
+        if (!state.getValues().isEmpty()) {
+            CompoundTag properties = new CompoundTag();
+            for (Map.Entry<Property<?>, Comparable<?>> e : state.getValues().entrySet()) {
                 properties.putString(e.getKey().getName(), propertyValue(e.getKey(), e.getValue()));
             }
             compound.put("Properties", properties);
@@ -259,7 +260,7 @@ public final class WorldCapture {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static String propertyValue(Property property, Comparable value) {
-        return property.name(value);
+        return property.getName(value);
     }
 
     /** Vanilla padded bit storage (no values crossing 64-bit boundaries). */
@@ -273,10 +274,10 @@ public final class WorldCapture {
     }
 
     /**
-     * Writes standard 1.21.1 Anvil region sectors. Appends new chunks;
+     * Writes standard 26.3 Anvil region sectors. Appends new chunks;
      * never modifies unrelated Minecraft saves or overwrites existing regions.
      */
-    private static void writeRegion(Path dir, int cx, int cz, NbtCompound chunk) throws IOException {
+    private static void writeRegion(Path dir, int cx, int cz, CompoundTag chunk) throws IOException {
         Files.createDirectories(dir);
         Path file = dir.resolve("r." + Math.floorDiv(cx, 32) + "." + Math.floorDiv(cz, 32) + ".mca");
         ByteArrayOutputStream raw = new ByteArrayOutputStream();

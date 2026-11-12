@@ -5,34 +5,36 @@ import dev.yukkit.toolkit.screen.ToolkitScreen;
 import dev.yukkit.toolkit.world.WorldCapture;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.text.Text;
-import org.lwjgl.glfw.GLFW;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.KeyMapping;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import com.mojang.blaze3d.platform.InputConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class YukkitToolkitClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("YukkitToolkit");
     public static final WorldCapture WORLD_CAPTURE = new WorldCapture();
-    private static KeyBinding menuKey;
+    private static KeyMapping menuKey;
 
     @Override
     public void onInitializeClient() {
-        menuKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.yukkit_toolkit.menu", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_SHIFT, "category.yukkit_toolkit"
+        menuKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+                "key.yukkit_toolkit.menu", InputConstants.Type.KEYBOARD, InputConstants.KEY_RSHIFT,
+                KeyMapping.Category.register(Identifier.fromNamespaceAndPath("yukkit_toolkit", "main"))
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (menuKey.wasPressed()) {
-                if (client.world != null && client.player != null) {
-                    if (client.currentScreen instanceof ToolkitScreen) client.setScreen(null);
-                    else client.setScreen(new ToolkitScreen());
+            while (menuKey.consumeClick()) {
+                if (client.level != null && client.player != null) {
+                    if (client.gui.screen() instanceof ToolkitScreen) client.gui.setScreen(null);
+                    else client.gui.setScreen(new ToolkitScreen());
                 }
             }
-            if (client.world == null || client.player == null) {
+            if (client.level == null || client.player == null) {
                 FreecamController.disable();
                 WORLD_CAPTURE.stop();
                 return;
@@ -44,7 +46,7 @@ public final class YukkitToolkitClient implements ClientModInitializer {
     }
 
     public static void notifyPlayer(String message) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player != null) client.player.sendMessage(Text.literal("[Yukkit] " + message), false);
+        Minecraft client = Minecraft.getInstance();
+        if (client.player != null) client.player.sendMessage(Component.literal("[Yukkit] " + message), false);
     }
 }

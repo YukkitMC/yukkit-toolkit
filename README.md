@@ -3,11 +3,11 @@
 **Modular, client-side Minecraft utilities.** Developed by [YukkitMC](https://github.com/YukkitMC).
 
 [![Build](https://github.com/YukkitMC/yukkit-toolkit/actions/workflows/build.yml/badge.svg)](https://github.com/YukkitMC/yukkit-toolkit/actions/workflows/build.yml)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-006EFE)](https://minecraft.net)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.3-006EFE)](https://minecraft.net)
 [![Fabric](https://img.shields.io/badge/Loader-Fabric-222222)](https://fabricmc.net)
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
-> **Status: v0.1.0-alpha.1**. Source implementation, build validation, and in-game compatibility testing are separate milestones. This is an experimental build, not a stable release.
+> **Status: v0.1.0-alpha.2**. Source implementation, build validation, and in-game compatibility testing are separate milestones. This is an experimental build, not a stable release.
 
 ## Modules
 
@@ -31,14 +31,14 @@ The **World Downloader is deliberately limited**: this alpha copies block states
 
 ## Requirements for players
 
-- Minecraft Java Edition **1.21.1**
-- **Java 21** to run the game
+- Minecraft Java Edition **26.3**
+- **Java 25** to run the game
 - **Fabric Loader**
-- **Fabric API** for Minecraft 1.21.1
+- **Fabric API** for Minecraft 26.3
 
 ## Building
 
-The current Loom build needs **JDK 25 to run Gradle** and a **JDK 21 toolchain to compile the mod**. Install both JDKs and Gradle 9.7.1, with Gradle itself running on JDK 25:
+The 26.3 build requires **JDK 25** to run Gradle and compile the mod. Install both JDKs and Gradle 9.7.1, with Gradle itself running on JDK 25:
 
 ```bash
 gradle clean build
@@ -48,7 +48,7 @@ The Fabric-remapped runtime JAR is built under `build/libs/`. The GitHub Actions
 
 ### Installation
 
-After a successful build, place the **remapped mod JAR** and the appropriate **Fabric API** in your Minecraft 1.21.1 `mods` folder. Install and select a Fabric 1.21.1 profile in your launcher. Do not install a build for a different Minecraft version.
+After a successful build, place the **remapped mod JAR** and the appropriate **Fabric API** in your Minecraft 26.3 `mods` folder. Install and select a Fabric 26.3 profile in your launcher. Do not install a build for a different Minecraft version.
 
 ### World capture
 

@@ -3,11 +3,11 @@ package dev.yukkit.toolkit.screen;
 import dev.yukkit.toolkit.ToolkitConfig;
 import dev.yukkit.toolkit.YukkitToolkitClient;
 import dev.yukkit.toolkit.camera.FreecamController;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.network.chat.Component;
 
 public final class ToolkitScreen extends Screen {
     private static final int BG = 0xFF0C1019;
@@ -23,7 +23,7 @@ public final class ToolkitScreen extends Screen {
     private int panelHeight;
 
     public ToolkitScreen() {
-        super(Text.literal("Yukkit Toolkit"));
+        super(Component.literal("Yukkit Toolkit"));
     }
 
     @Override
@@ -46,7 +46,7 @@ public final class ToolkitScreen extends Screen {
         int buttonWidth = Math.max(130, panelWidth - sidebar - 36);
         int line = y + 66;
         ToolkitConfig config = ToolkitConfig.INSTANCE;
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
 
         if (currentCategory == 0) {
             addButton(right, line, buttonWidth, 25, "Time: " + config.timeLabel(), () -> {
@@ -93,8 +93,8 @@ public final class ToolkitScreen extends Screen {
 
     private void addButton(int bx, int by, int w, int h, String label, Runnable click) {
         if (by + h > y + panelHeight - 28) return;
-        this.addDrawableChild(ButtonWidget.builder(Text.literal(label), button -> click.run())
-                .dimensions(bx, by, w, h).build());
+        this.addRenderableWidget(Button.builder(Component.literal(label), button -> click.run())
+                .bounds(bx, by, w, h).build());
     }
 
     private void switchCategory(int tab) {
@@ -103,11 +103,11 @@ public final class ToolkitScreen extends Screen {
     }
 
     private void refresh() {
-        if (client != null) client.setScreen(new ToolkitScreen());
+        if (client != null) client.gui.setScreen(new ToolkitScreen());
     }
 
     private void closePanel() {
-        if (client != null) client.setScreen(null);
+        if (client != null) client.gui.setScreen(null);
     }
 
     @Override
@@ -117,39 +117,39 @@ public final class ToolkitScreen extends Screen {
         context.fill(x, y, x + 4, y + panelHeight, BLUE);
         context.fill(x + 4, y + 45, x + 125, y + panelHeight, SIDEBAR);
 
-        context.drawTextWithShadow(textRenderer, "YUKKIT", x + 17, y + 14, FG);
-        context.drawTextWithShadow(textRenderer, "TOOLKIT", x + 62, y + 14, 0xFF67AAFF);
-        context.drawTextWithShadow(textRenderer, "Client-side utilities", x + 17, y + 31, MUTED);
+        context.text(this.font, "YUKKIT", x + 17, y + 14, FG, true);
+        context.text(this.font, "TOOLKIT", x + 62, y + 14, 0xFF67AAFF, true);
+        context.text(this.font, "Client-side utilities", x + 17, y + 31, MUTED, true);
 
         int sx = x + 145;
         String[] titles = {"Visual settings", "Camera tools", "World Downloader"};
-        context.drawTextWithShadow(textRenderer, titles[currentCategory], sx, y + 48, FG);
+        context.text(this.font, titles[currentCategory], sx, y + 48, FG, true);
 
         if (currentCategory == 0) {
-            context.drawTextWithShadow(textRenderer, "Changes affect your client only.", sx, y + 185, MUTED);
-            context.drawTextWithShadow(textRenderer, "Server time and weather remain unchanged.", sx, y + 199, MUTED);
+            context.text(this.font, "Changes affect your client only.", sx, y + 185, MUTED, true);
+            context.text(this.font, "Server time and weather remain unchanged.", sx, y + 199, MUTED, true);
         } else if (currentCategory == 1) {
-            context.drawTextWithShadow(textRenderer, "WASD: fly  |  Space/Shift: height", sx, y + 158, MUTED);
-            context.drawTextWithShadow(textRenderer, "Mouse: look  |  Sprint: faster", sx, y + 172, MUTED);
-            context.drawTextWithShadow(textRenderer, "Your player stays in place.", sx, y + 186, MUTED);
+            context.text(this.font, "WASD: fly  |  Space/Shift: height", sx, y + 158, MUTED, true);
+            context.text(this.font, "Mouse: look  |  Sprint: faster", sx, y + 172, MUTED, true);
+            context.text(this.font, "Your player stays in place.", sx, y + 186, MUTED, true);
         } else {
-            context.drawTextWithShadow(textRenderer, "Experimental overworld capture.", sx, y + 118, MUTED);
-            context.drawTextWithShadow(textRenderer,
+            context.text(this.font, "Experimental overworld capture.", sx, y + 118, MUTED, true);
+            context.text(this.font,
                     "Chunks saved: " + YukkitToolkitClient.WORLD_CAPTURE.getSavedChunks(), sx, y + 136, FG);
-            context.drawTextWithShadow(textRenderer, "No inventories or unseen chunks.", sx, y + 154, MUTED);
-            context.drawTextWithShadow(textRenderer, "Follow server rules before recording.", sx, y + 172, MUTED);
+            context.text(this.font, "No inventories or unseen chunks.", sx, y + 154, MUTED, true);
+            context.text(this.font, "Follow server rules before recording.", sx, y + 172, MUTED, true);
         }
 
         context.fill(x + 8, y + panelHeight - 26, x + panelWidth - 8, y + panelHeight - 25, 0xFF273248);
-        context.drawTextWithShadow(textRenderer, "YukkitMC  /  v0.1.0-alpha.1", x + 17,
+        context.text(this.font, "YukkitMC  /  v0.1.0-alpha.1", x + 17,
                 y + panelHeight - 17, MUTED);
-        context.drawTextWithShadow(textRenderer, "RSHIFT TO TOGGLE", x + panelWidth - 130,
+        context.text(this.font, "RSHIFT TO TOGGLE", x + panelWidth - 130,
                 y + panelHeight - 17, MUTED);
-        super.render(context, mouseX, mouseY, delta);
+        super.extractRenderState(context, mouseX, mouseY, delta);
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
     }
 }
