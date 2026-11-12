@@ -8,15 +8,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+/**
+ * Weather only. Time must not target Level#getDayTime on Minecraft 26.3:
+ * it no longer exists, and targeting it crashes the game during bootstrap.
+ */
 @Mixin(Level.class)
 public abstract class WorldVisualsMixin {
-    @Inject(method = "getDayTime", at = @At("HEAD"), cancellable = true)
-    private void yukkit$time(CallbackInfoReturnable<Long> cir) {
-        if ((Object) this instanceof ClientLevel && ToolkitConfig.INSTANCE.localTime != 0) {
-            cir.setReturnValue(ToolkitConfig.INSTANCE.timeValue());
-        }
-    }
-
     @Inject(method = "getRainLevel", at = @At("HEAD"), cancellable = true)
     private void yukkit$rain(float delta, CallbackInfoReturnable<Float> cir) {
         if ((Object) this instanceof ClientLevel && ToolkitConfig.INSTANCE.localWeather != 0) {

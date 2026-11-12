@@ -7,7 +7,7 @@
 [![Fabric](https://img.shields.io/badge/Loader-Fabric-222222)](https://fabricmc.net)
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
-> **Status: v0.1.0-alpha.2**. Source implementation, build validation, and in-game compatibility testing are separate milestones. This is an experimental build, not a stable release.
+> **Status: v0.1.0-alpha.3**. Source implementation, build validation, and in-game compatibility testing are separate milestones. This is an experimental build, not a stable release.
 
 ## Modules
 
@@ -20,7 +20,7 @@
 | Freecam | Initial implementation | Independent camera movement using WASD, Space / Shift, and mouse. |
 | World Downloader | Experimental | Captures *loaded overworld chunks* into a new local Anvil-format save. |
 
-The **World Downloader is deliberately limited**: this alpha copies block states of loaded chunks. It does **not** preserve exact biomes, block entities, inventories, entities, structures, server seed, or unloaded areas. The generated save is **not an exact server backup**, and opening it in singleplayer has not yet been verified. New areas will use an unrelated world seed, causing mismatched terrain. **Back up saves before experimenting.** It never modifies an existing save.
+The 26.3 Time Changer now hooks the client clock instead of the removed Level#getDayTime method. This fixes a confirmed pre-launch Mixin crash seen in 0.1.0-alpha.2.\n\nThe **World Downloader is deliberately limited**: this alpha copies block states of loaded chunks. It does **not** preserve exact biomes, block entities, inventories, entities, structures, server seed, or unloaded areas. The generated save is **not an exact server backup**, and opening it in singleplayer has not yet been verified. New areas will use an unrelated world seed, causing mismatched terrain. **Back up saves before experimenting.** It never modifies an existing save.
 
 ### Controls
 

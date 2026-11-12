@@ -2,8 +2,9 @@
   "required": true,
   "minVersion": "0.8",
   "package": "dev.yukkit.toolkit.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_25",
   "client": [
+    "ClientClockMixin",
     "WorldVisualsMixin",
     "LightmapMixin",
     "CameraMixin",

@@ -11,7 +11,6 @@ import net.minecraft.client.KeyMapping;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import com.mojang.blaze3d.platform.InputConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +41,7 @@ public final class YukkitToolkitClient implements ClientModInitializer {
             FreecamController.tick(client);
             WORLD_CAPTURE.tick(client);
         });
-        LOGGER.info("Yukkit Toolkit initialized (Minecraft 1.21.1 / Fabric)");
+        LOGGER.info("Yukkit Toolkit initialized (Minecraft 26.3 / Fabric)");
     }
 
     public static void notifyPlayer(String message) {
