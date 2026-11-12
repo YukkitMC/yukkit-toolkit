@@ -1,70 +1,96 @@
+<div align="center">
+
 # Yukkit Toolkit
 
-**Modular, client-side Minecraft utilities.** Developed by [YukkitMC](https://github.com/YukkitMC).
+**A modular client-side utility mod for Minecraft Java Edition.**
 
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.3-006EFE)](https://www.minecraft.net/)
+[![Fabric](https://img.shields.io/badge/Loader-Fabric-151b29)](https://fabricmc.net/)
 [![Build](https://github.com/YukkitMC/yukkit-toolkit/actions/workflows/build.yml/badge.svg)](https://github.com/YukkitMC/yukkit-toolkit/actions/workflows/build.yml)
-[![Minecraft](https://img.shields.io/badge/Minecraft-26.3-006EFE)](https://minecraft.net)
-[![Fabric](https://img.shields.io/badge/Loader-Fabric-222222)](https://fabricmc.net)
-[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-006EFE)](LICENSE)
 
-> **Status: v0.1.0-alpha.3**. Source implementation, build validation, and in-game compatibility testing are separate milestones. This is an experimental build, not a stable release.
+**[Downloads](https://github.com/YukkitMC/yukkit-toolkit/actions/workflows/build.yml) • [Features](#features) • [Contributing](CONTRIBUTING.md) • [Security](SECURITY.md)**
 
-## Modules
+</div>
 
-| Feature | Status | Description |
+---
+
+## What is Yukkit Toolkit?
+
+Yukkit Toolkit combines practical Minecraft tools under a single in-game panel, with a focus on straightforward controls, reliable behavior, and low overhead.
+
+> **Early alpha — v0.1.0-alpha.4.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
+
+## Features
+
+| Category | Module | Details |
 |---|---|---|
-| Right Shift ClickGUI | Initial implementation | Open the configurable in-game control panel. |
-| Time Changer | Initial implementation | Day / noon / sunset / night rendered client-side, with server fallback. |
-| Weather Changer | Initial implementation | Local clear / rain / server weather. |
-| Fullbright | Initial implementation | Brightness override in client lightmap calculations. |
-| Freecam | Initial implementation | Independent camera movement using WASD, Space / Shift, and mouse. |
-| World Downloader | Experimental | Captures *loaded overworld chunks* into a new local Anvil-format save. |
-
-The 26.3 Time Changer now hooks the client clock instead of the removed Level#getDayTime method. This fixes a confirmed pre-launch Mixin crash seen in 0.1.0-alpha.2.\n\nThe **World Downloader is deliberately limited**: this alpha copies block states of loaded chunks. It does **not** preserve exact biomes, block entities, inventories, entities, structures, server seed, or unloaded areas. The generated save is **not an exact server backup**, and opening it in singleplayer has not yet been verified. New areas will use an unrelated world seed, causing mismatched terrain. **Back up saves before experimenting.** It never modifies an existing save.
+| **Visual** | Time Changer | Local day, noon, sunset or night; does not change the server clock. |
+| **Visual** | Weather Changer | Local clear/rain display with an option to follow server weather. |
+| **Visual** | Fullbright | Client-side lighting adjustment. |
+| **Camera** | Freecam | Independent camera with eased acceleration/deceleration, smooth partial-tick position interpolation, and sprint speed. |
+| **Camera** | Perspective | Rotate the camera independently of your character. Default keyboard shortcut: **V**. |
+| **Mods** | Keystrokes | Lightweight WASD, left/right mouse and SPACE HUD. |
+| **Mods** | TNT Timer | Shows countdowns for up to three nearby loaded primed TNT entities. |
+| **Mods** | Lightweight Graphics | Reversible preset for minimal particles, disabled clouds and render distance capped at 8 chunks. Actual FPS gains depend on your hardware and existing settings. |
+| **Team Time** | Nearby teammate list | Enter Minecraft Java usernames and see approximate distances to loaded nearby players. |
+| **Team Time** | Local Team Glow | Optional local highlighting of matching nearby players within 32 blocks. No server-side permissions are changed. |
+| **Style** | Local capes | Two bundled cape designs, **Azure** and **Ember**. Local rendering only. |
+| **Style** | Wave | Simple vanilla arm-swing gesture. Not a custom animated emote. |
+| **World** | World Downloader | Experimental capture of loaded overworld block data into a local Anvil-format world directory. Not a faithful or validated world backup. |
 
 ### Controls
 
-- **Right Shift**: open/close Toolkit panel (customizable through Minecraft Controls).
-- **Visual**: cycle time and weather, toggle Fullbright.
-- **Camera**: Freecam on/off. Use **WASD**, **Space**, **Sneak**, **mouse**, and **Sprint** for movement.
-- **World**: start/stop experimental overworld capture, record chunks while exploring.
+- **Right Shift:** open/close the Yukkit Toolkit panel.
+- **V:** toggle Perspective when no menu is open.
+- **Freecam:** WASD to move, mouse to rotate, SPACE to ascend, SNEAK to descend, and SPRINT to accelerate.
+- **Mods tab:** Keystrokes, TNT Timer, Lightweight Graphics and Team HUD toggles.
+- **Team Time tab:** add/remove nicknames, enable/disable nearby glow.
+- **Style tab:** select cape preset and run the basic arm animation.
 
-## Requirements for players
+Minecraft **26.3** uses SDL input scancodes rather than the older GLFW keycodes.
+
+## Important limitations
+
+**Cosmetic synchronization.** The included capes render **locally**, not on other people's clients. To show a player's individually selected cape or a custom emote to another user who also has Yukkit Toolkit, a secure synchronization service or an opt-in server relay must be developed. This release does **not** transmit cosmetics, nicknames, profiles or emote data over any network.
+
+**World Downloader.** Captures data only from chunks the client has already received. The alpha exporter does not preserve the world seed, exact biomes, inventories, block entities, structures, mobs or unexplored chunks. The resulting world may not load as expected. It must not be treated as an exact backup and should only be used where server rules permit.
+
+**Multiplayer rules.** Client-side does not mean every server allows a feature. Verify server policies before using Freecam, World Downloader, Team Glow or other modules. No anti-cheat bypass or server permission escalation is promised.
+
+**Performance.** The lightweight preset changes ordinary Minecraft video settings and stores the previous values for restoration when disabled in the same session. An unexpected crash may leave the newly saved video settings enabled. Performance gains are not measured or guaranteed.
+
+## Requirements
 
 - Minecraft Java Edition **26.3**
-- **Java 25** to run the game
-- **Fabric Loader**
-- **Fabric API** for Minecraft 26.3
+- Fabric Loader compatible with 26.3
+- Fabric API for 26.3
+- Java **25**
 
-## Building
+Install the JAR generated by the [Build Fabric Mod](https://github.com/YukkitMC/yukkit-toolkit/actions/workflows/build.yml) workflow into your profile's `mods` directory. Install only the runtime JAR, not the sources JAR.
 
-The 26.3 build requires **JDK 25** to run Gradle and compile the mod. Install both JDKs and Gradle 9.7.1, with Gradle itself running on JDK 25:
+## Build
 
-```bash
+Run Gradle **9.7.1** using JDK **25**:
+
+```sh
 gradle clean build
 ```
 
-The Fabric-remapped runtime JAR is built under `build/libs/`. The GitHub Actions workflow also publishes downloadable build artifacts on successful pushes. Do not confuse the `-sources.jar` or `-dev.jar` with the runnable mod.
+The output is written to `build/libs/`. CI publishes the runnable JAR as a downloadable workflow artifact after a successful build. A successful Java compilation is **not** equivalent to a successful in-game test.
 
-### Installation
+## Development
 
-After a successful build, place the **remapped mod JAR** and the appropriate **Fabric API** in your Minecraft 26.3 `mods` folder. Install and select a Fabric 26.3 profile in your launcher. Do not install a build for a different Minecraft version.
+Yukkit Toolkit welcomes issues and pull requests following the [contribution guide](CONTRIBUTING.md). Please include your Minecraft version, Fabric Loader version, list of installed mods and relevant crash log when reporting a runtime issue.
 
-### World capture
+[Changelog](CHANGELOG.md) • [Code of Conduct](CODE_OF_CONDUCT.md) • [Security Policy](SECURITY.md) • [MIT License](LICENSE)
 
-1. Join an Overworld where capturing world data is permitted.
-2. Press **Right Shift**, open **World**, and enable **World Download**.
-3. Explore normally; the tool scans already loaded chunks around your real player.
-4. Stop the capture before leaving the server.
-5. Find a new directory under `.minecraft/saves/YukkitCapture-YYYYMMDD-HHmmss`.
+---
 
-No server-side files or privileged access are used. The mod does not retrieve hidden chunks. Do not use this on servers that forbid map copying.
+<div align="center">
 
-## Repository
+**YukkitMC** — *Your Minecraft. Your experience.*
 
-- [Contributing](CONTRIBUTING.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-- [Security policy](SECURITY.md)
-- [MIT License](LICENSE)
+<sub>Independent project. Not affiliated with Mojang Studios or Microsoft.</sub>
 
-This is an independent project and not affiliated with Mojang or Microsoft.
+</div>
