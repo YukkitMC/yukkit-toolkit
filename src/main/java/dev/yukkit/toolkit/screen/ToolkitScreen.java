@@ -9,6 +9,7 @@ import dev.yukkit.toolkit.cosmetics.CapeCosmetics;
 import dev.yukkit.toolkit.map.ToolkitMap;
 import dev.yukkit.toolkit.performance.PerformanceController;
 import dev.yukkit.toolkit.modules.XrayController;
+import dev.yukkit.toolkit.team.TeamEspColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -29,11 +30,12 @@ import java.util.Locale;
  * only custom-rendered section; there are no hand-drawn panels or button skins.
  */
 public final class ToolkitScreen extends Screen {
-    public enum Page { HOME, VISUAL, CAMERA, MODS, AUTOMATION, TEAM, STYLE, WORLD, MAP }
+    public enum Page { HOME, VISUAL, CAMERA, MODS, AUTOMATION, TEAM, TEAM_COLOR, STYLE, WORLD, MAP }
 
     private final Screen parent;
     private final Page page;
     private EditBox nameBox;
+    private EditBox customColorBox;
     private String feedback = "";
     private int teamPage = 0;
 
@@ -59,6 +61,7 @@ public final class ToolkitScreen extends Screen {
             case MODS -> "Mods";
             case AUTOMATION -> "Automation";
             case TEAM -> "Team";
+            case TEAM_COLOR -> "Team Color";
             case STYLE -> "Style";
             case WORLD -> "World";
             case MAP -> "Map";
@@ -178,16 +181,8 @@ public final class ToolkitScreen extends Screen {
                 config.teamGlow = !config.teamGlow;
                 change();
             });
-            nativeButton(right, top + 25, pairWidth, "ESP range: " + config.teamGlowRange, () -> {
-                config.teamGlowRange = switch (config.teamGlowRange) {
-                    case 64 -> 256;
-                    case 256 -> 512;
-                    case 512 -> 2048;
-                    case 2048 -> 10000;
-                    default -> 64;
-                };
-                change();
-            });
+            nativeButton(right, top + 25, pairWidth, "Glow Color: " + TeamEspColor.name(config.teamGlowColor),
+                    () -> open(Page.TEAM_COLOR));
             List<String> names = config.teamMates == null ? List.of() : config.teamMates;
             int visible = Math.min(3, Math.max(0, names.size() - teamPage * 3));
             for (int i = 0; i < visible; i++) {
@@ -204,6 +199,37 @@ public final class ToolkitScreen extends Screen {
             nativeButton(right, top + 137, pairWidth, "Next", () -> {
                 teamPage = Math.min(Math.max(0, (names.size() - 1) / 3), teamPage + 1);
                 rebuildWidgets();
+            });
+        } else if (page == Page.TEAM_COLOR) {
+            for (int i = 0; i < TeamEspColor.VALUES.length; i++) {
+                final int selected = i;
+                nativeButton(i % 2 == 0 ? left : right, top + (i / 2) * 25, pairWidth,
+                        TeamEspColor.NAMES[i], () -> {
+                            TeamEspColor.setPreset(selected);
+                            rebuildWidgets();
+                        });
+            }
+            customColorBox = new EditBox(font, left, top + 104, 228, 20, Component.literal("Custom ESP color"));
+            customColorBox.setMaxLength(7);
+            customColorBox.setValue(TeamEspColor.hex());
+            addRenderableWidget(customColorBox);
+            nativeButton(left + 234, top + 104, 74, "Apply HEX", () -> {
+                if (TeamEspColor.setHex(customColorBox.getValue())) {
+                    feedback = "";
+                    rebuildWidgets();
+                } else {
+                    feedback = "Invalid color. Use #RRGGBB";
+                }
+            });
+            nativeButton(left, top + 130, 308, "ESP range: " + config.teamGlowRange, () -> {
+                config.teamGlowRange = switch (config.teamGlowRange) {
+                    case 64 -> 256;
+                    case 256 -> 512;
+                    case 512 -> 2048;
+                    case 2048 -> 10000;
+                    default -> 64;
+                };
+                change();
             });
         } else if (page == Page.STYLE) {
             nativeButton(left, top, pairWidth, "Cape: " + CapeCosmetics.label(), () -> {
@@ -290,7 +316,8 @@ public final class ToolkitScreen extends Screen {
     }
 
     private void back() {
-        if (minecraft != null) minecraft.gui.setScreen(new ToolkitScreen(parent, Page.HOME));
+        if (minecraft != null)
+            minecraft.gui.setScreen(new ToolkitScreen(parent, page == Page.TEAM_COLOR ? Page.TEAM : Page.HOME));
     }
 
     @Override
@@ -320,6 +347,12 @@ public final class ToolkitScreen extends Screen {
                 }
             }
             graphics.centeredText(font, Component.literal("ESP range filters loaded players only; no distant tracking"), width / 2, height - 57, 0xFFAAAAAA);
+        } else if (page == Page.TEAM_COLOR) {
+            int y = Math.min(Math.max(46, height / 2 - 108) + 166, height - 76);
+            int color = 0xFF000000 | TeamEspColor.rgb();
+            graphics.fill(width / 2 - 154, y, width / 2 - 122, y + 14, color);
+            graphics.text(font, "ESP preview: " + TeamEspColor.hex(), width / 2 - 115, y + 3,
+                    0xFFFFFFFF, true);
         } else if (page == Page.MAP) {
             if (ToolkitConfig.INSTANCE.mapPreview) {
                 ToolkitMap.render(graphics, width / 2 - 88, Math.max(91, height / 2 - 88), 2);

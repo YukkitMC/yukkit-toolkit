@@ -14,7 +14,8 @@
     "TeamOutlineMixin",
     "PauseScreenMixin",
     "XrayBlockMixin",
-    "XrayOcclusionMixin"
+    "XrayOcclusionMixin",
+    "TeamColorMixin"
   ],
   "injectors": {
     "defaultRequire": 1
