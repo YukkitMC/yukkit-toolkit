@@ -7,6 +7,8 @@ import net.fabricmc.loader.api.FabricLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class ToolkitConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -19,6 +21,11 @@ public final class ToolkitConfig {
     // 0 = server, 1 = clear, 2 = rain
     public int localWeather = 0;
     public boolean fullbright = false;
+    public boolean keystrokes = true;
+    public boolean tntTimer = true;
+    public boolean teamHud = true;
+    public boolean teamGlow = false;
+    public List<String> teamMates = new ArrayList<>();
 
     private static ToolkitConfig load() {
         try {
@@ -27,6 +34,7 @@ public final class ToolkitConfig {
                 if (loaded != null) {
                     loaded.localTime = Math.floorMod(loaded.localTime, 5);
                     loaded.localWeather = Math.floorMod(loaded.localWeather, 3);
+                    if (loaded.teamMates == null) loaded.teamMates = new ArrayList<>();
                     return loaded;
                 }
             }
