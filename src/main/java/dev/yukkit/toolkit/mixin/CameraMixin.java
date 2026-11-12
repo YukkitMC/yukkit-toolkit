@@ -1,6 +1,7 @@
 package dev.yukkit.toolkit.mixin;
 
 import dev.yukkit.toolkit.camera.FreecamController;
+import dev.yukkit.toolkit.camera.PerspectiveController;
 import net.minecraft.client.Camera;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -14,10 +15,13 @@ public abstract class CameraMixin {
     @Shadow protected abstract void setRotation(float yaw, float pitch);
 
     @Inject(method = "alignWithEntity", at = @At("TAIL"))
-    private void yukkit$freecam(float tickDelta, CallbackInfo ci) {
-        if (!FreecamController.isEnabled()) return;
-        var p = FreecamController.position();
-        this.setRotation(FreecamController.yaw(), FreecamController.pitch());
-        this.setPosition(p.x, p.y, p.z);
+    private void yukkit$camera(float partialTicks, CallbackInfo ci) {
+        if (FreecamController.isEnabled()) {
+            var pos = FreecamController.cameraPosition(partialTicks);
+            this.setRotation(FreecamController.yaw(), FreecamController.pitch());
+            this.setPosition(pos.x, pos.y, pos.z);
+        } else if (PerspectiveController.isEnabled()) {
+            this.setRotation(PerspectiveController.yaw(), PerspectiveController.pitch());
+        }
     }
 }
