@@ -11,7 +11,8 @@
     "EntityLookMixin",
     "KeyboardInputMixin",
     "AvatarCapeMixin",
-    "TeamOutlineMixin"
+    "TeamOutlineMixin",
+    "PauseScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

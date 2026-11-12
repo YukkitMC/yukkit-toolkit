@@ -7,6 +7,7 @@ import dev.yukkit.toolkit.camera.FreecamController;
 import dev.yukkit.toolkit.camera.PerspectiveController;
 import dev.yukkit.toolkit.performance.PerformanceController;
 import dev.yukkit.toolkit.cosmetics.CapeCosmetics;
+import dev.yukkit.toolkit.map.ToolkitMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -26,15 +27,21 @@ public final class ToolkitScreen extends Screen {
     private static final int BLUE = 0xFF006EFE;
     private static final int FG = 0xFFF5F7FC;
     private static final int MUTED = 0xFF9AA6BE;
-    private static final String[] TABS = {"Visual", "Camera", "Mods", "Team Time", "Style", "World"};
+    private static final String[] TABS = {"Visual", "Camera", "Mods", "Team Time", "Style", "World", "Map"};
     private static int tab = 0;
     private static int teamOffset = 0;
 
     private int x, y, panelWidth, panelHeight;
     private EditBox nameBox;
+    private final Screen previousScreen;
     private String message = "";
 
-    public ToolkitScreen() { super(Component.literal("Yukkit Toolkit")); }
+    public ToolkitScreen() { this(null); }
+
+    public ToolkitScreen(Screen previousScreen) {
+        super(Component.literal("Yukkit Tools"));
+        this.previousScreen = previousScreen;
+    }
 
     @Override
     protected void init() {
@@ -44,7 +51,7 @@ public final class ToolkitScreen extends Screen {
         y = (height - panelHeight) / 2;
         for (int i = 0; i < TABS.length; i++) {
             final int target = i;
-            addButton(x + 11, y + 60 + i * 33, 105, 26,
+            addButton(x + 11, y + 56 + i * 33, 105, 25,
                     (tab == i ? " > " : "   ") + TABS[i], () -> changeTab(target));
         }
         int right = x + 145;
@@ -136,6 +143,18 @@ public final class ToolkitScreen extends Screen {
                         } else YukkitToolkitClient.WORLD_CAPTURE.start(mc);
                         refresh();
                     });
+            case 6 -> {
+                addButton(right, top, bw, 24, "Minimap HUD: " + onOff(cfg.minimap), () -> {
+                    cfg.minimap = !cfg.minimap;
+                    cfg.save();
+                    refresh();
+                });
+                addButton(right, top + 34, bw, 24, "Map data: " + onOff(cfg.mapPreview), () -> {
+                    cfg.mapPreview = !cfg.mapPreview;
+                    cfg.save();
+                    refresh();
+                });
+            }
             default -> {}
         }
         addButton(x + panelWidth - 34, y + 10, 22, 20, "X", this::closePanel);
@@ -172,18 +191,18 @@ public final class ToolkitScreen extends Screen {
     }
 
     private void changeTab(int next) { tab = next; refresh(); }
-    private void refresh() { if (minecraft != null) minecraft.gui.setScreen(new ToolkitScreen()); }
-    private void closePanel() { if (minecraft != null) minecraft.gui.setScreen(null); }
+    private void refresh() { if (minecraft != null) minecraft.gui.setScreen(new ToolkitScreen(previousScreen)); }
+    private void closePanel() { if (minecraft != null) minecraft.gui.setScreen(previousScreen); }
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mx, int my, float dt) {
-        graphics.fill(0, 0, width, height, 0xB5000000);
-        graphics.fill(x, y, x + panelWidth, y + panelHeight, BG);
-        graphics.fill(x, y, x + 4, y + panelHeight, BLUE);
-        graphics.fill(x + 4, y + 45, x + 128, y + panelHeight, SIDEBAR);
+        graphics.fill(0, 0, width, height, 0x90000000);
+        graphics.fill(x, y, x + panelWidth, y + panelHeight, 0xE0202020);
+        graphics.fill(x, y, x + panelWidth, y + 2, 0xFF555555);
+        graphics.fill(x + 4, y + 43, x + 128, y + panelHeight - 30, 0xBB303030);
         graphics.text(font, "YUKKIT", x + 15, y + 15, FG, true);
-        graphics.text(font, "TOOLKIT", x + 62, y + 15, 0xFF71AEFF, true);
-        graphics.text(font, "MODULAR CLIENT UTILITIES", x + 145, y + 25, MUTED, true);
+        graphics.text(font, "TOOLS", x + 62, y + 15, 0xFFE4E4E4, true);
+        graphics.text(font, "Minecraft 26.3  |  Client utilities", x + 145, y + 25, MUTED, true);
 
         int px = x + 145, py = y + 48;
         graphics.text(font, TABS[tab].toUpperCase(Locale.ROOT), px, py, FG, true);
@@ -219,11 +238,21 @@ public final class ToolkitScreen extends Screen {
                         px, y + 136, FG, true);
                 graphics.text(font, "No inventories, entities or hidden chunks.", px, y + 156, MUTED, true);
             }
+            case 6 -> {
+                if (ToolkitConfig.INSTANCE.mapPreview) {
+                    ToolkitMap.render(graphics, px + 1, y + 156, 5);
+                    graphics.text(font, "White: you  Cyan: teammate  Red: other", px + 145, y + 168, MUTED, true);
+                    graphics.text(font, "Only loaded terrain & players", px + 145, y + 184, MUTED, true);
+                    graphics.text(font, "X " + ToolkitMap.centerX() + "  Z " + ToolkitMap.centerZ(), px + 145, y + 202, FG, true);
+                } else {
+                    graphics.text(font, "Enable map data to preview terrain.", px, y + 162, MUTED, true);
+                }
+            }
             default -> {}
         }
         if (!message.isEmpty()) graphics.text(font, message, px, y + panelHeight - 44, 0xFFFFBE63, true);
         graphics.fill(x + 8, y + panelHeight - 25, x + panelWidth - 8, y + panelHeight - 24, 0xFF273248);
-        graphics.text(font, "YukkitMC / 26.3  /  alpha.4", x + 14, y + panelHeight - 16, MUTED, true);
+        graphics.text(font, "YukkitMC / 26.3  /  alpha.5", x + 14, y + panelHeight - 16, MUTED, true);
         super.extractRenderState(graphics, mx, my, dt);
     }
 
