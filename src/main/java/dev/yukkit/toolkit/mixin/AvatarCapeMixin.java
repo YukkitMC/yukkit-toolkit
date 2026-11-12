@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AvatarRenderer.class)
 public abstract class AvatarCapeMixin {
-    @Inject(method = "extractRenderState", at = @At("TAIL"), require = 0)
+    @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Avatar;Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;F)V", at = @At("TAIL"), require = 0)
     private void yukkit$localCape(Avatar avatar, AvatarRenderState renderState, float delta, CallbackInfo ci) {
         if (ToolkitConfig.INSTANCE.capeStyle == 0) return;
         var client = Minecraft.getInstance();
