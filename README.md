@@ -38,7 +38,7 @@ The **World Downloader is deliberately limited**: this alpha copies block states
 
 ## Building
 
-The current Loom build needs **JDK 25 to run Gradle** and a **JDK 21 toolchain to compile the mod**. Install both JDKs and Gradle 9.2.1, with Gradle itself running on JDK 25:
+The current Loom build needs **JDK 25 to run Gradle** and a **JDK 21 toolchain to compile the mod**. Install both JDKs and Gradle 9.7.1, with Gradle itself running on JDK 25:
 
 ```bash
 gradle clean build
