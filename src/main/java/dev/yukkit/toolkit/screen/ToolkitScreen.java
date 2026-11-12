@@ -125,6 +125,14 @@ public final class ToolkitScreen extends Screen {
                 PerformanceController.toggle(Minecraft.getInstance());
                 change();
             });
+            nativeButton(left, top + 50, pairWidth, "Auto Totem: " + label(config.autoTotem), () -> {
+                config.autoTotem = !config.autoTotem;
+                change();
+            });
+            nativeButton(right, top + 50, pairWidth, "X-Ray Ores: " + label(config.xray), () -> {
+                dev.yukkit.toolkit.modules.XrayController.toggle(Minecraft.getInstance());
+                rebuildWidgets();
+            });
         } else if (page == Page.TEAM) {
             nameBox = new EditBox(font, left, top, 232, 20, Component.literal("Minecraft player name"));
             nameBox.setMaxLength(32);

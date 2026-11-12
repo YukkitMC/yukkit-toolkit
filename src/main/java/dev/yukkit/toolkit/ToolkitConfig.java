@@ -28,6 +28,10 @@ public final class ToolkitConfig {
     public boolean mapPreview = true;
     public boolean tntTimer = true;
     public boolean teamHud = true;
+    /** Optional inventory assistance, disabled until the player enables it. */
+    public boolean autoTotem = false;
+    /** Optional client-side ore-only block rendering. */
+    public boolean xray = false;
     public boolean teamGlow = false;
     public List<String> teamMates = new ArrayList<>();
 

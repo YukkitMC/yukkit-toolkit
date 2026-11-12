@@ -12,7 +12,9 @@
     "KeyboardInputMixin",
     "AvatarCapeMixin",
     "TeamOutlineMixin",
-    "PauseScreenMixin"
+    "PauseScreenMixin",
+    "XrayBlockMixin",
+    "XrayOcclusionMixin"
   ],
   "injectors": {
     "defaultRequire": 1
