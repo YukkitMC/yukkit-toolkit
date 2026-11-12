@@ -104,7 +104,7 @@ public final class ToolkitScreen extends Screen {
                 teamOffset = Math.min(teamOffset, Math.max(0, cfg.teamMates.size() - 4));
                 for (int i = teamOffset; i < Math.min(teamOffset + 4, cfg.teamMates.size()); i++) {
                     final int index = i;
-                    addButton(right, top + 72 + (i - teamOffset) * 30, bw - 58, 24, cfg.teamMates.get(i), () -> {});
+                    // Player names are labels, not clickable no-op buttons.
                     addButton(right + bw - 53, top + 72 + (i - teamOffset) * 30, 53, 24, "Remove", () -> {
                         cfg.teamMates.remove(index); cfg.save(); refresh();
                     });
@@ -197,6 +197,14 @@ public final class ToolkitScreen extends Screen {
                 graphics.text(font, "Toggle again to restore your settings.", px, y + 266, MUTED, true);
             }
             case 3 -> {
+                var entries = ToolkitConfig.INSTANCE.teamMates;
+                if (entries != null) {
+                    for (int i = teamOffset; i < Math.min(teamOffset + 4, entries.size()); i++) {
+                        int rowY = y + 139 + (i - teamOffset) * 30;
+                        graphics.fill(px, rowY, px + Math.max(70, panelWidth - 222), rowY + 24, SIDEBAR);
+                        graphics.text(font, entries.get(i), px + 9, rowY + 8, FG, true);
+                    }
+                }
                 graphics.text(font, "Only nearby loaded players (up to 32m).", px, y + 313, MUTED, true);
                 graphics.text(font, "No remote tracking or server data access.", px, y + 327, MUTED, true);
             }
@@ -215,7 +223,7 @@ public final class ToolkitScreen extends Screen {
         }
         if (!message.isEmpty()) graphics.text(font, message, px, y + panelHeight - 44, 0xFFFFBE63, true);
         graphics.fill(x + 8, y + panelHeight - 25, x + panelWidth - 8, y + panelHeight - 24, 0xFF273248);
-        graphics.text(font, "YukkitMC / 26.3  /  alpha", x + 14, y + panelHeight - 16, MUTED, true);
+        graphics.text(font, "YukkitMC / 26.3  /  alpha.4", x + 14, y + panelHeight - 16, MUTED, true);
         super.extractRenderState(graphics, mx, my, dt);
     }
 
