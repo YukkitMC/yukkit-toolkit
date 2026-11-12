@@ -19,6 +19,8 @@ public final class AutoEat {
 
     private AutoEat() {}
 
+    public static boolean isActive() { return previousSlot >= 0; }
+
     private static void restore(Minecraft client) {
         if (client.player != null && previousSlot >= 0 && foodSlot >= 0) {
             var inventory = client.player.getInventory();

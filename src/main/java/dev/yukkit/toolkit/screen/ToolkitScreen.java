@@ -8,6 +8,7 @@ import dev.yukkit.toolkit.camera.PerspectiveController;
 import dev.yukkit.toolkit.cosmetics.CapeCosmetics;
 import dev.yukkit.toolkit.map.ToolkitMap;
 import dev.yukkit.toolkit.performance.PerformanceController;
+import dev.yukkit.toolkit.modules.XrayController;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -28,7 +29,7 @@ import java.util.Locale;
  * only custom-rendered section; there are no hand-drawn panels or button skins.
  */
 public final class ToolkitScreen extends Screen {
-    public enum Page { HOME, VISUAL, CAMERA, MODS, TEAM, STYLE, WORLD, MAP }
+    public enum Page { HOME, VISUAL, CAMERA, MODS, AUTOMATION, TEAM, STYLE, WORLD, MAP }
 
     private final Screen parent;
     private final Page page;
@@ -56,6 +57,7 @@ public final class ToolkitScreen extends Screen {
             case VISUAL -> "Visual";
             case CAMERA -> "Camera";
             case MODS -> "Mods";
+            case AUTOMATION -> "Automation";
             case TEAM -> "Team";
             case STYLE -> "Style";
             case WORLD -> "World";
@@ -80,7 +82,7 @@ public final class ToolkitScreen extends Screen {
             nativeButton(left, top + 50, pairWidth, "Cosmetics", () -> open(Page.STYLE));
             nativeButton(right, top + 50, pairWidth, "World", () -> open(Page.WORLD));
             nativeButton(left, top + 75, pairWidth, "Map", () -> open(Page.MAP));
-            nativeButton(right, top + 75, pairWidth, "Settings", () -> open(Page.MODS));
+            nativeButton(right, top + 75, pairWidth, "Automation", () -> open(Page.AUTOMATION));
         } else if (page == Page.VISUAL) {
             nativeButton(left, top, pairWidth, "Time: " + config.timeLabel(), () -> {
                 config.localTime = (config.localTime + 1) % 5;
@@ -133,6 +135,39 @@ public final class ToolkitScreen extends Screen {
                 dev.yukkit.toolkit.modules.XrayController.toggle(Minecraft.getInstance());
                 rebuildWidgets();
             });
+            nativeButton(left, top + 75, pairWidth, "Chest X-Ray: " + label(config.chestXray), () -> {
+                XrayController.toggleChest(Minecraft.getInstance());
+                rebuildWidgets();
+            });
+        } else if (page == Page.AUTOMATION) {
+            nativeButton(left, top, pairWidth, "Auto Clicker: " + label(config.autoClicker), () -> {
+                config.autoClicker = !config.autoClicker;
+                change();
+            });
+            nativeButton(right, top, pairWidth, "CPS: " + config.clickCps, () -> {
+                config.clickCps = config.clickCps >= 12 ? 4 : config.clickCps + 2;
+                change();
+            });
+            nativeButton(left, top + 25, pairWidth, "Auto Miner: " + label(config.autoMiner), () -> {
+                config.autoMiner = !config.autoMiner;
+                change();
+            });
+            nativeButton(right, top + 25, pairWidth, "Mace Swap: " + label(config.maceSwap), () -> {
+                config.maceSwap = !config.maceSwap;
+                change();
+            });
+            nativeButton(left, top + 50, pairWidth, "Auto Eat: " + label(config.autoEat), () -> {
+                config.autoEat = !config.autoEat;
+                change();
+            });
+            nativeButton(right, top + 50, pairWidth, "Eat hunger <= " + config.eatThreshold, () -> {
+                config.eatThreshold = switch (config.eatThreshold) {
+                    case 10 -> 14;
+                    case 14 -> 16;
+                    default -> 10;
+                };
+                change();
+            });
         } else if (page == Page.TEAM) {
             nameBox = new EditBox(font, left, top, 232, 20, Component.literal("Minecraft player name"));
             nameBox.setMaxLength(32);
@@ -143,8 +178,14 @@ public final class ToolkitScreen extends Screen {
                 config.teamGlow = !config.teamGlow;
                 change();
             });
-            nativeButton(right, top + 25, pairWidth, "Team HUD: " + label(config.teamHud), () -> {
-                config.teamHud = !config.teamHud;
+            nativeButton(right, top + 25, pairWidth, "ESP range: " + config.teamGlowRange, () -> {
+                config.teamGlowRange = switch (config.teamGlowRange) {
+                    case 64 -> 256;
+                    case 256 -> 512;
+                    case 512 -> 2048;
+                    case 2048 -> 10000;
+                    default -> 64;
+                };
                 change();
             });
             List<String> names = config.teamMates == null ? List.of() : config.teamMates;
@@ -265,6 +306,10 @@ public final class ToolkitScreen extends Screen {
         if (page == Page.CAMERA) {
             graphics.centeredText(font, Component.literal("Freecam: WASD / Space / Shift / Sprint"), width / 2, height / 2 + 25, 0xFFAAAAAA);
             graphics.centeredText(font, Component.literal("Perspective shortcut: V"), width / 2, height / 2 + 39, 0xFFAAAAAA);
+        } else if (page == Page.AUTOMATION) {
+            graphics.centeredText(font, Component.literal("Clicker: hold attack on an entity (no auto aim)"), width / 2, height / 2 + 12, 0xFFAAAAAA);
+            graphics.centeredText(font, Component.literal("Miner: only the block under your crosshair"), width / 2, height / 2 + 28, 0xFFAAAAAA);
+            graphics.centeredText(font, Component.literal("Mace: preselect while falling | Eat: hotbar carrot"), width / 2, height / 2 + 44, 0xFFAAAAAA);
         } else if (page == Page.TEAM) {
             int left = width / 2 - 154;
             int top = Math.max(46, height / 2 - 108);
@@ -274,7 +319,7 @@ public final class ToolkitScreen extends Screen {
                     graphics.text(font, names.get(i), left + 8, top + 60 + (i - teamPage * 3) * 25, 0xFFFFFFFF, true);
                 }
             }
-            graphics.centeredText(font, Component.literal("Only client-loaded players can be highlighted"), width / 2, height - 57, 0xFFAAAAAA);
+            graphics.centeredText(font, Component.literal("ESP range filters loaded players only; no distant tracking"), width / 2, height - 57, 0xFFAAAAAA);
         } else if (page == Page.MAP) {
             if (ToolkitConfig.INSTANCE.mapPreview) {
                 ToolkitMap.render(graphics, width / 2 - 88, Math.max(91, height / 2 - 88), 2);

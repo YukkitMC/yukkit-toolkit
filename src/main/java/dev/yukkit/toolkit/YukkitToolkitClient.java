@@ -8,6 +8,10 @@ import dev.yukkit.toolkit.world.WorldCapture;
 import dev.yukkit.toolkit.hud.ToolkitHud;
 import dev.yukkit.toolkit.map.ToolkitMap;
 import dev.yukkit.toolkit.modules.AutoTotem;
+import dev.yukkit.toolkit.modules.AutoClicker;
+import dev.yukkit.toolkit.modules.AutoMiner;
+import dev.yukkit.toolkit.modules.MaceSwap;
+import dev.yukkit.toolkit.modules.AutoEat;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
@@ -57,6 +61,10 @@ public final class YukkitToolkitClient implements ClientModInitializer {
             ToolkitHud.tick(client);
             ToolkitMap.tick(client);
             AutoTotem.tick(client);
+            AutoEat.tick(client);
+            MaceSwap.tick(client);
+            AutoClicker.tick(client);
+            AutoMiner.tick(client);
         });
         LOGGER.info("Yukkit Toolkit initialized (Minecraft 26.3 / Fabric)");
     }

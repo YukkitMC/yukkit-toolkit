@@ -1,6 +1,7 @@
 package dev.yukkit.toolkit.modules;
 
 import dev.yukkit.toolkit.ToolkitConfig;
+import dev.yukkit.toolkit.modules.AutoEat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.EntityHitResult;
@@ -32,7 +33,7 @@ public final class MaceSwap {
             previousLevel = client.level;
         }
         if (client.player == null || client.gameMode == null || client.level == null ||
-                !ToolkitConfig.INSTANCE.maceSwap || client.gui.screen() != null ||
+                AutoEat.isActive() || !ToolkitConfig.INSTANCE.maceSwap || client.gui.screen() != null ||
                 client.player.isSpectator() || client.player.isUsingItem() ||
                 client.player.onGround() || client.player.fallDistance < 1.5 ||
                 !(client.hitResult instanceof EntityHitResult hit) ||

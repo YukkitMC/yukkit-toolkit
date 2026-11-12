@@ -34,6 +34,12 @@ public final class ToolkitConfig {
     public volatile boolean xray = false;
     /** Only previously received chest blocks can be rendered. */
     public volatile boolean chestXray = false;
+    public boolean autoClicker = false;
+    public int clickCps = 6;
+    public boolean autoMiner = false;
+    public boolean maceSwap = false;
+    public boolean autoEat = false;
+    public int eatThreshold = 14;
     public boolean teamGlow = false;
     /** User-selected filter distance; actual server-tracked entity distance may be much shorter. */
     public int teamGlowRange = 64;
@@ -48,6 +54,8 @@ public final class ToolkitConfig {
                     loaded.localWeather = Math.floorMod(loaded.localWeather, 3);
                     loaded.capeStyle = Math.floorMod(loaded.capeStyle, 3);
                     loaded.teamGlowRange = sanitizeTeamRange(loaded.teamGlowRange);
+                    loaded.clickCps = Math.max(2, Math.min(12, loaded.clickCps));
+                    loaded.eatThreshold = Math.max(6, Math.min(18, loaded.eatThreshold));
                     if (loaded.teamMates == null) loaded.teamMates = new ArrayList<>();
                     return loaded;
                 }

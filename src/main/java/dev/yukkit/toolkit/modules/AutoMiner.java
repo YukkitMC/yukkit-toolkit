@@ -1,6 +1,7 @@
 package dev.yukkit.toolkit.modules;
 
 import dev.yukkit.toolkit.ToolkitConfig;
+import dev.yukkit.toolkit.modules.AutoEat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,7 +33,7 @@ public final class AutoMiner {
             stop(mc);
             previousLevel = mc.level;
         }
-        if (!ToolkitConfig.INSTANCE.autoMiner || mc.player == null || mc.level == null || mc.gameMode == null
+        if (AutoEat.isActive() || !ToolkitConfig.INSTANCE.autoMiner || mc.player == null || mc.level == null || mc.gameMode == null
                 || mc.gui.screen() != null || mc.player.isSpectator()
                 || mc.player.isUsingItem() || !(mc.hitResult instanceof BlockHitResult hit)
                 || mc.level.getBlockState(hit.getBlockPos()).isAir()) {

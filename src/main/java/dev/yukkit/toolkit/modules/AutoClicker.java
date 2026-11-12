@@ -1,6 +1,7 @@
 package dev.yukkit.toolkit.modules;
 
 import dev.yukkit.toolkit.ToolkitConfig;
+import dev.yukkit.toolkit.modules.AutoEat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.component.SwingAnimation;
@@ -17,7 +18,7 @@ public final class AutoClicker {
 
     public static void tick(Minecraft client) {
         if (cooldown > 0) cooldown--;
-        if (!ToolkitConfig.INSTANCE.autoClicker || client.level == null || client.player == null
+        if (AutoEat.isActive() || !ToolkitConfig.INSTANCE.autoClicker || client.level == null || client.player == null
                 || client.gameMode == null || client.gui.screen() != null
                 || !client.options.keyAttack.isDown() || !(client.hitResult instanceof EntityHitResult hit)) return;
         if (client.player.isSpectator() || client.player.isUsingItem()) return;
