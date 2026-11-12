@@ -135,14 +135,14 @@ public final class ToolkitScreen extends Screen {
         } else {
             context.text(this.font, "Experimental overworld capture.", sx, y + 118, MUTED, true);
             context.text(this.font,
-                    "Chunks saved: " + YukkitToolkitClient.WORLD_CAPTURE.getSavedChunks(), sx, y + 136, FG);
+                    "Chunks saved: " + YukkitToolkitClient.WORLD_CAPTURE.getSavedChunks(), sx, y + 136, FG, true);
             context.text(this.font, "No inventories or unseen chunks.", sx, y + 154, MUTED, true);
             context.text(this.font, "Follow server rules before recording.", sx, y + 172, MUTED, true);
         }
 
         context.fill(x + 8, y + panelHeight - 26, x + panelWidth - 8, y + panelHeight - 25, 0xFF273248);
-        context.text(this.font, "YukkitMC  /  v0.1.0-alpha.1", x + 17,
-                y + panelHeight - 17, MUTED);
+        context.text(this.font, "YukkitMC  /  v0.1.0-alpha.2", x + 17,
+                y + panelHeight - 17, MUTED, true);
         context.text(this.font, "RSHIFT TO TOGGLE", x + panelWidth - 130,
                 y + panelHeight - 17, MUTED);
         super.extractRenderState(context, mouseX, mouseY, delta);
