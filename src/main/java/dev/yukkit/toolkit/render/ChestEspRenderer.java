@@ -1,15 +1,15 @@
 package dev.yukkit.toolkit.render;
 
-import com.mojang.blaze3d.PrimitiveTopology;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.renderpearl.api.vertex.VertexFormat;
 import dev.yukkit.toolkit.ToolkitConfig;
 import dev.yukkit.toolkit.modules.XrayController;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelExtractionContext;
@@ -173,7 +173,7 @@ public final class ChestEspRenderer {
         try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(
                 () -> "Yukkit Chest ESP", color, Optional.empty(),
                 target.getDepthTextureView(), OptionalDouble.empty())) {
-            pass.setPipeline(THROUGH_WALLS);
+            pass.setPipeline(RenderSystem.getCompiledPipeline(THROUGH_WALLS));
             RenderSystem.bindDefaultUniforms(pass);
             pass.setUniform("DynamicTransforms", uniforms);
             pass.setVertexBuffer(0, info.vertexBuffer().slice());
