@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "yukkit_toolkit",
+  "version": "${version}",
+  "name": "Yukkit Toolkit",
+  "description": "Modular client-side utilities for Minecraft Java Edition.",
+  "authors": ["YukkitMC"],
+  "contact": {
+    "homepage": "https://github.com/YukkitMC/yukkit-toolkit",
+    "sources": "https://github.com/YukkitMC/yukkit-toolkit",
+    "issues": "https://github.com/YukkitMC/yukkit-toolkit/issues"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.yukkit.toolkit.YukkitToolkitClient"]
+  },
+  "mixins": [
+    "yukkit-toolkit.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

@@ -1,123 +1,70 @@
-<div align="center">
-
 # Yukkit Toolkit
 
-### Your Minecraft. Your experience.
+**Modular, client-side Minecraft utilities.** Developed by [YukkitMC](https://github.com/YukkitMC).
 
-**A modular client-side toolkit built to make Minecraft Java Edition more comfortable, customizable, and practical.**
+[![Build](https://github.com/YukkitMC/yukkit-toolkit/actions/workflows/build.yml/badge.svg)](https://github.com/YukkitMC/yukkit-toolkit/actions/workflows/build.yml)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-006EFE)](https://minecraft.net)
+[![Fabric](https://img.shields.io/badge/Loader-Fabric-222222)](https://fabricmc.net)
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
-[![Status](https://img.shields.io/badge/status-early%20development-006EFE?style=for-the-badge&labelColor=121722)](https://github.com/YukkitMC/yukkit-toolkit)
-[![Minecraft](https://img.shields.io/badge/platform-Java%20Edition-222936?style=for-the-badge&labelColor=121722)](https://www.minecraft.net/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-006EFE?style=for-the-badge&labelColor=121722)](LICENSE)
+> **Status: v0.1.0-alpha.1**. Source implementation, build validation, and in-game compatibility testing are separate milestones. This is an experimental build, not a stable release.
 
-[**Overview**](#overview) · [**Features**](#planned-features) · [**Roadmap**](#roadmap) · [**Contribute**](CONTRIBUTING.md) · [**Security**](SECURITY.md)
+## Modules
 
-</div>
+| Feature | Status | Description |
+|---|---|---|
+| Right Shift ClickGUI | Initial implementation | Open the configurable in-game control panel. |
+| Time Changer | Initial implementation | Day / noon / sunset / night rendered client-side, with server fallback. |
+| Weather Changer | Initial implementation | Local clear / rain / server weather. |
+| Fullbright | Initial implementation | Brightness override in client lightmap calculations. |
+| Freecam | Initial implementation | Independent camera movement using WASD, Space / Shift, and mouse. |
+| World Downloader | Experimental | Captures *loaded overworld chunks* into a new local Anvil-format save. |
 
----
+The **World Downloader is deliberately limited**: this alpha copies block states of loaded chunks. It does **not** preserve exact biomes, block entities, inventories, entities, structures, server seed, or unloaded areas. The generated save is **not an exact server backup**, and opening it in singleplayer has not yet been verified. New areas will use an unrelated world seed, causing mismatched terrain. **Back up saves before experimenting.** It never modifies an existing save.
 
-## Overview
+### Controls
 
-**Yukkit Toolkit** is a project by [YukkitMC](https://github.com/YukkitMC), an independent organization dedicated to useful Minecraft modifications.
+- **Right Shift**: open/close Toolkit panel (customizable through Minecraft Controls).
+- **Visual**: cycle time and weather, toggle Fullbright.
+- **Camera**: Freecam on/off. Use **WASD**, **Space**, **Sneak**, **mouse**, and **Sprint** for movement.
+- **World**: start/stop experimental overworld capture, record chunks while exploring.
 
-The idea is simple: **one mod, one interface, the tools you actually need.** Instead of installing a separate client for every convenience, Yukkit Toolkit aims to provide a coherent set of configurable, client-side utilities for exploration, building, recording, and multiplayer quality of life.
+## Requirements
 
-Our development principles:
+- Minecraft Java Edition **1.21.1**
+- **Java 21**
+- **Fabric Loader**
+- **Fabric API** for Minecraft 1.21.1
 
-- **Player-first:** prioritize features with a clear everyday benefit.
-- **Modular by design:** enable only the tools you want.
-- **Clean experience:** an organized interface, predictable controls, sensible defaults.
-- **Performance-conscious:** keep overhead low and behavior understandable.
-- **Transparent development:** document capabilities, limitations, and compatibility honestly.
+## Building
 
-> [!IMPORTANT]
-> **Project status: early development.** Features below are **planned**, not claims that they already work. There is currently no stable public build or confirmed supported Minecraft version.
+With Gradle 9.2.1 installed and Java 21 available:
 
-## Planned features
+```bash
+gradle clean build
+```
 
-| Category | Module | Description |
-| :--- | :--- | :--- |
-| **World** | World Downloader | Save world data received by your client for permitted local use. |
-| **World** | Waypoints | Organize and revisit useful locations. |
-| **World** | Chunk Borders | Display chunk boundaries for building and navigation. |
-| **Visual** | Time Changer | Adjust the time of day rendered on your screen. |
-| **Visual** | Weather Changer | Customize locally rendered weather effects. |
-| **Visual** | Fullbright | Improve visibility through client-side rendering settings. |
-| **Visual** | Zoom | Use smooth, configurable camera zoom. |
-| **Camera** | Freecam | Move your camera independently from your character, where permitted. |
-| **Camera** | Freelook | Look around without rotating your character. |
-| **Interface** | HUD Customization | Adjust useful in-game information and layout. |
-| **Settings** | Server Profiles | Save different preferences for different servers. |
+The Fabric-remapped runtime JAR is built under `build/libs/`. The GitHub Actions workflow also publishes build artifacts on successful pushes. Do not confuse the `-sources.jar` or `-dev.jar` with the runnable mod.
 
-> [!NOTE]
-> Client-side features cannot override server-authoritative game rules. A World Downloader can only record data actually sent to your client; it cannot obtain a complete server backup or hidden, unloaded chunks.
+### Installation
 
-## One panel. Every module.
+After a successful build, place the **remapped mod JAR** and the appropriate **Fabric API** in your Minecraft 1.21.1 `mods` folder. Install and select a Fabric 1.21.1 profile in your launcher. Do not install a build for a different Minecraft version.
 
-The planned **ClickGUI** will bring all modules into a single interface.
+### World capture
 
-- **Right Shift (RSHIFT)** to open the panel by default.
-- Clear categories: World, Visual, Camera, Interface, and Settings.
-- Individual module toggles, options, and configurable keybindings.
-- Local persistence of preferences.
-- A layout designed for quick access without covering gameplay unnecessarily.
+1. Join an Overworld where capturing world data is permitted.
+2. Press **Right Shift**, open **World**, and enable **World Download**.
+3. Explore normally; the tool scans already loaded chunks around your real player.
+4. Stop the capture before leaving the server.
+5. Find a new directory under `.minecraft/saves/YukkitCapture-YYYYMMDD-HHmmss`.
 
-The interface and default bindings are subject to change before release.
+No server-side files or privileged access are used. The mod does not retrieve hidden chunks. Do not use this on servers that forbid map copying.
 
-## Roadmap
+## Repository
 
-| Milestone | Scope | State |
-| :--- | :--- | :--- |
-| **Foundation** | Project setup, module architecture, configuration | Planned |
-| **Interface** | ClickGUI, navigation, toggles, keybindings | Planned |
-| **Core utilities** | Time Changer, Weather Changer, Fullbright, Freecam | Planned |
-| **World utilities** | World Downloader, waypoints, chunk tools | Planned |
-| **First public build** | Compatibility checks, documentation, downloadable JAR | Planned |
+- [Contributing](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+- [MIT License](LICENSE)
 
-We will publish supported Minecraft versions, loaders, dependencies, and changelogs alongside actual releases rather than advertise untested compatibility.
-
-## Getting started
-
-**There is no official downloadable version yet.**
-
-When builds become available, installation instructions will be included in [Releases](https://github.com/YukkitMC/yukkit-toolkit/releases). Only use artifacts from verified project channels, and never run an unknown JAR simply because someone labels it “Yukkit.”
-
-## Multiplayer & fair use
-
-We build for player convenience, but **server rules always matter**:
-
-- Local time and weather changes affect your view, not the server's simulation.
-- Freecam does not grant new permissions or access to unloaded areas.
-- Save or reuse world data only where you are authorized to do so.
-- Some servers may restrict or prohibit client modifications.
-
-Yukkit Toolkit is not intended to bypass access controls or evade anti-cheat enforcement. You are responsible for using modules in accordance with the communities you join.
-
-## Contributing
-
-We welcome clear bug reports, thoughtful suggestions, documentation improvements, and focused pull requests. We prefer contributions to the **official YukkitMC project** instead of independent distributions, but MIT licensing permits forks and redistribution under its terms.
-
-Please review the following before participating:
-
-| Document | Purpose |
-| :--- | :--- |
-| [**Contributing**](CONTRIBUTING.md) | How to report, propose, and submit changes. |
-| [**Code of Conduct**](CODE_OF_CONDUCT.md) | Expectations for respectful collaboration. |
-| [**Security**](SECURITY.md) | How to report vulnerabilities privately. |
-| [**MIT License**](LICENSE) | Rights and obligations for use and redistribution. |
-
-[Open an issue](https://github.com/YukkitMC/yukkit-toolkit/issues) · [View pull requests](https://github.com/YukkitMC/yukkit-toolkit/pulls)
-
-## License
-
-This project is licensed under the **[MIT License](LICENSE)**. It allows use, modification, redistribution, and commercial use subject to retaining the required copyright and license notice. Contributions are submitted under the same license unless otherwise agreed.
-
----
-
-<div align="center">
-
-**Built by [YukkitMC](https://github.com/YukkitMC). Built for Minecraft players.**
-
-<sub>Yukkit Toolkit is independent and is not affiliated with, endorsed by, or sponsored by Mojang Studios or Microsoft. Minecraft and associated names belong to their respective owners.</sub>
-
-</div>
+This is an independent project and not affiliated with Mojang or Microsoft.
