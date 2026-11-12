@@ -29,22 +29,22 @@ The **World Downloader is deliberately limited**: this alpha copies block states
 - **Camera**: Freecam on/off. Use **WASD**, **Space**, **Sneak**, **mouse**, and **Sprint** for movement.
 - **World**: start/stop experimental overworld capture, record chunks while exploring.
 
-## Requirements
+## Requirements for players
 
 - Minecraft Java Edition **1.21.1**
-- **Java 21**
+- **Java 21** to run the game
 - **Fabric Loader**
 - **Fabric API** for Minecraft 1.21.1
 
 ## Building
 
-With Gradle 9.2.1 installed and Java 21 available:
+The current Loom build needs **JDK 25 to run Gradle** and a **JDK 21 toolchain to compile the mod**. Install both JDKs and Gradle 9.2.1, with Gradle itself running on JDK 25:
 
 ```bash
 gradle clean build
 ```
 
-The Fabric-remapped runtime JAR is built under `build/libs/`. The GitHub Actions workflow also publishes build artifacts on successful pushes. Do not confuse the `-sources.jar` or `-dev.jar` with the runnable mod.
+The Fabric-remapped runtime JAR is built under `build/libs/`. The GitHub Actions workflow also publishes downloadable build artifacts on successful pushes. Do not confuse the `-sources.jar` or `-dev.jar` with the runnable mod.
 
 ### Installation
 

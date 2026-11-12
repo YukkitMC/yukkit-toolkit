@@ -15,11 +15,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Java 21
+      - name: Install Java 21 compiler and Java 25 Gradle runtime
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: |
+            21
+            25
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -31,5 +33,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: yukkit-toolkit-fabric-1.21.1
-          path: build/libs/yukkit-toolkit-*.jar
+          path: |
+            build/libs/yukkit-toolkit-*.jar
+            !build/libs/*-dev.jar
+            !build/libs/*-sources.jar
           if-no-files-found: error
