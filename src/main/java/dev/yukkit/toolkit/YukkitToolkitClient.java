@@ -30,6 +30,7 @@ public final class YukkitToolkitClient implements ClientModInitializer {
     public static final WorldCapture WORLD_CAPTURE = new WorldCapture();
     private static KeyMapping menuKey;
     private static KeyMapping perspectiveKey;
+    private static KeyMapping freecamKey;
 
     @Override
     public void onInitializeClient() {
@@ -39,6 +40,10 @@ public final class YukkitToolkitClient implements ClientModInitializer {
         ));
         perspectiveKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.yukkit_toolkit.perspective", InputConstants.Type.KEYBOARD, InputConstants.KEY_V, category
+        ));
+
+        freecamKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+                "key.yukkit_toolkit.freecam", InputConstants.Type.KEYBOARD, InputConstants.KEY_X, category
         ));
 
         ToolkitHud.register();
@@ -54,6 +59,11 @@ public final class YukkitToolkitClient implements ClientModInitializer {
             }
             while (perspectiveKey.consumeClick()) {
                 if (client.gui.screen() == null && client.player != null) PerspectiveController.toggle(client);
+            }
+            while (freecamKey.consumeClick()) {
+                if (client.gui.screen() == null && client.level != null && client.player != null) {
+                    FreecamController.toggle(client);
+                }
             }
             if (client.level == null || client.player == null) {
                 FreecamController.disable();

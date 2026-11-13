@@ -380,7 +380,7 @@ public final class ToolkitScreen extends Screen {
         graphics.centeredText(font, title, width / 2, 20, 0xFFFFFFFF);
         if (page == Page.CAMERA) {
             graphics.centeredText(font, Component.literal("Freecam: WASD / Space / Shift / Sprint"), width / 2, height / 2 + 25, 0xFFAAAAAA);
-            graphics.centeredText(font, Component.literal("Perspective shortcut: V"), width / 2, height / 2 + 39, 0xFFAAAAAA);
+            graphics.centeredText(font, Component.literal("Freecam shortcut: X  |  Perspective: V"), width / 2, height / 2 + 39, 0xFFAAAAAA);
         } else if (page == Page.STORAGE) {
             int baseline=Math.max(46,height / 2 - 108) + 114;
             graphics.centeredText(font, Component.literal("Cached chests: " + ChestCandidates.positions().size()
