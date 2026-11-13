@@ -1,188 +1,110 @@
 package dev.yukkit.toolkit.render;
 
-import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
-import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
-import com.mojang.renderpearl.api.pipeline.RenderPipeline;
-import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.renderpearl.api.commands.RenderPass;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.renderpearl.api.textures.GpuTextureView;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.renderpearl.api.vertex.VertexFormat;
 import dev.yukkit.toolkit.ToolkitConfig;
 import dev.yukkit.toolkit.modules.XrayController;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelExtractionContext;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelExtractionEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.StagedVertexBuffer;
-import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.gizmos.GizmoStyle;
+import net.minecraft.gizmos.Gizmos;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
-import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4f;
-import org.joml.Matrix4fc;
-import org.joml.Vector3f;
-import org.joml.Vector4f;
+import net.minecraft.world.phys.AABB;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.OptionalDouble;
 
 /**
- * Chest ESP: outlines nearby known storage blocks with translucent 3D volumes.
- * Ordinary block rendering stays untouched; only this overlay ignores world depth.
+ * Chest ESP with the vanilla Minecraft 26.3 Gizmos API.
  *
- * Chunk iteration uses loaded chunks without forcing loads or scanning the server.
- * World access happens during client ticks, never in the GPU drawing callback.
+ * IMPORTANT: Do not allocate/upload GPU buffers or create a RenderPass inside
+ * AFTER_TRANSLUCENT_TERRAIN. That callback runs with an active render pass
+ * (especially with Iris), resulting in IllegalStateException on upload().
+ *
+ * BEFORE_GIZMOS only registers vanilla gizmos; Minecraft schedules their GPU
+ * work at the appropriate point in the render frame.
  */
 public final class ChestEspRenderer {
     private static final int CHUNK_RADIUS = 4;
-    private static final int RANGE = 64;
+    private static final int RANGE_BLOCKS = 64;
     private static final int MAX_BOXES = 96;
-    private static final int RESCAN_TICKS = 20;
-    private static final float R = 0.07f, G = 0.75f, B = 1.0f, ALPHA = 0.24f;
+    private static final int RESCAN_INTERVAL_TICKS = 20;
+    private static final int OUTLINE_COLOR = 0xFF20BFFF;
+    private static final int FILL_COLOR = 0x3020BFFF;
+    private static final GizmoStyle BOX_STYLE =
+            GizmoStyle.strokeAndFill(OUTLINE_COLOR, 2.0f, FILL_COLOR);
 
-    private static final RenderPipeline THROUGH_WALLS = RenderPipelines.register(
-        RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
-            .withLocation(Identifier.fromNamespaceAndPath("yukkit_toolkit", "pipeline/chest_esp"))
-            .withDepthStencilState(Optional.empty())
-            .build());
+    // Snapshot is replaced as a whole on the main client thread.
+    private static volatile List<Box> boxes = List.of();
+    private static Object currentLevel;
+    private static int scanCountdown;
 
-    private static final Vector4f WHITE = new Vector4f(1f, 1f, 1f, 1f);
-    private static final Vector3f OFFSET = new Vector3f();
-    private static final Matrix4f TEXTURE = new Matrix4f();
-    private static final StagedVertexBuffer BUFFER =
-            new StagedVertexBuffer(() -> "Yukkit Chest ESP", RenderType.SMALL_BUFFER_SIZE);
-
-    private static List<Box> known = List.of();
-    private static List<Box> extracted = List.of();
-    private static Object lastLevel;
-    private static int ticks;
-
-    private record Box(int x, int y, int z) {}
+    private record Box(int x, int y, int z) {
+        AABB bounds() {
+            return new AABB(x + 0.05, y + 0.05, z + 0.05,
+                            x + 0.95, y + 0.95, z + 0.95);
+        }
+    }
 
     private ChestEspRenderer() {}
 
     public static void register() {
-        LevelExtractionEvents.END_EXTRACTION.register(ChestEspRenderer::extract);
-        LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN.register(ChestEspRenderer::render);
+        LevelRenderEvents.BEFORE_GIZMOS.register(context -> {
+            if (!ToolkitConfig.INSTANCE.chestXray) return;
+            for (Box box : boxes) {
+                Gizmos.cuboid(box.bounds(), BOX_STYLE).setAlwaysOnTop();
+            }
+        });
     }
 
     public static void tick(Minecraft client) {
         if (client.level == null || client.player == null || !ToolkitConfig.INSTANCE.chestXray) {
-            known = List.of();
-            lastLevel = null;
-            ticks = 0;
+            clear();
             return;
         }
-        if (client.level != lastLevel) {
-            lastLevel = client.level;
-            ticks = RESCAN_TICKS;
-            known = List.of();
+
+        if (client.level != currentLevel) {
+            currentLevel = client.level;
+            boxes = List.of();
+            scanCountdown = 0;
         }
-        if (++ticks < RESCAN_TICKS) return;
-        ticks = 0;
+        if (scanCountdown-- > 0) return;
+        scanCountdown = RESCAN_INTERVAL_TICKS - 1;
 
         BlockPos playerPos = client.player.blockPosition();
-        int cx = Math.floorDiv(playerPos.getX(), 16);
-        int cz = Math.floorDiv(playerPos.getZ(), 16);
-        int radiusSq = RANGE * RANGE;
+        int centerChunkX = Math.floorDiv(playerPos.getX(), 16);
+        int centerChunkZ = Math.floorDiv(playerPos.getZ(), 16);
+        int distanceSquaredLimit = RANGE_BLOCKS * RANGE_BLOCKS;
         List<Box> found = new ArrayList<>();
+
         outer:
         for (int dz = -CHUNK_RADIUS; dz <= CHUNK_RADIUS; dz++) {
             for (int dx = -CHUNK_RADIUS; dx <= CHUNK_RADIUS; dx++) {
-                var candidate = client.level.getChunkSource().getChunk(
-                        cx + dx, cz + dz, ChunkStatus.FULL, false);
-                if (!(candidate instanceof LevelChunk chunk)) continue;
+                var chunk = client.level.getChunkSource().getChunk(
+                        centerChunkX + dx, centerChunkZ + dz, ChunkStatus.FULL, false);
+                if (!(chunk instanceof LevelChunk loaded)) continue;
 
-                for (BlockPos pos : chunk.getBlockEntities().keySet()) {
-                    if (pos.distSqr(playerPos) > radiusSq) continue;
-                    if (!XrayController.isChest(client.level.getBlockState(pos).getBlock())) continue;
+                // Only block entities which already exist in loaded client chunks.
+                for (BlockPos pos : loaded.getBlockEntities().keySet()) {
+                    if (pos.distSqr(playerPos) > distanceSquaredLimit) continue;
+                    if (!XrayController.isChest(loaded.getBlockState(pos).getBlock())) continue;
                     found.add(new Box(pos.getX(), pos.getY(), pos.getZ()));
                     if (found.size() >= MAX_BOXES) break outer;
                 }
             }
         }
-        known = List.copyOf(found);
+
+        boxes = List.copyOf(found);
     }
 
-    private static void extract(LevelExtractionContext context) {
-        extracted = ToolkitConfig.INSTANCE.chestXray ? known : List.of();
+    public static void clear() {
+        boxes = List.of();
+        currentLevel = null;
+        scanCountdown = 0;
     }
 
-    private static void render(LevelRenderContext context) {
-        List<Box> positions = extracted;
-        if (positions.isEmpty()) return;
-        VertexFormat format = THROUGH_WALLS.getVertexFormatBinding(0);
-        if (format == null) return;
-        PrimitiveTopology primitive = THROUGH_WALLS.getPrimitiveTopology();
-        StagedVertexBuffer.Draw draw = BUFFER.appendDraw(format, primitive,
-            primitive == PrimitiveTopology.QUADS ? RenderSystem.getProjectionType().vertexSorting() : null);
-
-        PoseStack pose = context.poseStack();
-        Vec3 camera = context.levelState().cameraRenderState.pos;
-        pose.pushPose();
-        pose.translate(-camera.x, -camera.y, -camera.z);
-        VertexConsumer vertices = BUFFER.getVertexBuilder(draw);
-        Matrix4fc matrix = pose.last().pose();
-
-        for (Box box : positions) {
-            cube(matrix, vertices, box.x + 0.045f, box.y + 0.045f, box.z + 0.045f,
-                box.x + 0.955f, box.y + 0.955f, box.z + 0.955f);
-        }
-        pose.popPose();
-        BUFFER.upload();
-        StagedVertexBuffer.ExecuteInfo info = BUFFER.getExecuteInfo(draw);
-        if (info != null) draw(Minecraft.getInstance(), info);
-        BUFFER.endFrame();
-    }
-
-    private static void cube(Matrix4fc m, VertexConsumer v,
-                             float x0, float y0, float z0, float x1, float y1, float z1) {
-        // Quad faces rendered with disabled depth testing and low alpha.
-        quad(m,v,x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y1,z1);
-        quad(m,v,x1,y0,z0, x0,y0,z0, x0,y1,z0, x1,y1,z0);
-        quad(m,v,x0,y0,z0, x0,y0,z1, x0,y1,z1, x0,y1,z0);
-        quad(m,v,x1,y0,z1, x1,y0,z0, x1,y1,z0, x1,y1,z1);
-        quad(m,v,x0,y1,z1, x1,y1,z1, x1,y1,z0, x0,y1,z0);
-        quad(m,v,x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z1);
-    }
-
-    private static void quad(Matrix4fc m, VertexConsumer v,
-                             float x0,float y0,float z0, float x1,float y1,float z1,
-                             float x2,float y2,float z2, float x3,float y3,float z3) {
-        v.addVertex(m,x0,y0,z0).setColor(R,G,B,ALPHA);
-        v.addVertex(m,x1,y1,z1).setColor(R,G,B,ALPHA);
-        v.addVertex(m,x2,y2,z2).setColor(R,G,B,ALPHA);
-        v.addVertex(m,x3,y3,z3).setColor(R,G,B,ALPHA);
-    }
-
-    private static void draw(Minecraft client, StagedVertexBuffer.ExecuteInfo info) {
-        GpuBufferSlice uniforms = RenderSystem.getDynamicUniforms().writeTransform(
-            RenderSystem.getModelViewMatrixCopy(), WHITE, OFFSET, TEXTURE);
-        RenderTarget target = client.gameRenderer.mainRenderTarget();
-        GpuTextureView color = target.getColorTextureView();
-        if (color == null) return;
-        try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(
-                () -> "Yukkit Chest ESP", color, Optional.empty(),
-                target.getDepthTextureView(), OptionalDouble.empty())) {
-            pass.setPipeline(RenderSystem.getCompiledPipeline(THROUGH_WALLS));
-            RenderSystem.bindDefaultUniforms(pass);
-            pass.setUniform("DynamicTransforms", uniforms);
-            pass.setVertexBuffer(0, info.vertexBuffer().slice());
-            pass.setIndexBuffer(info.indexBuffer(), info.indexType());
-            pass.drawIndexed(info.indexCount(), 1, info.firstIndex(), info.baseVertex(), 0);
-        }
-    }
-
+    // Kept as a harmless compatibility method for older code until cleanup.
     public static void close() {
-        BUFFER.close();
+        clear();
     }
 }
