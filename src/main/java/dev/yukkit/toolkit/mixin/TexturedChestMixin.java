@@ -41,7 +41,7 @@ public abstract class TexturedChestMixin {
         Minecraft client = Minecraft.getInstance();
         if (client.player == null || client.level == null) return;
         if (!dev.yukkit.toolkit.render.ChestCandidates.inRange(state.blockPos, client.player.blockPosition())) return;
-        if (!dev.yukkit.toolkit.render.ChestCandidates.selectedChest(state.blockState.getBlock())) return;
+        if (!dev.yukkit.toolkit.render.ChestCandidates.selectedChest(client.level.getBlockState(state.blockPos).getBlock())) return;
 
         SpriteId sprite = Sheets.chooseSprite(state.material, state.type);
         RenderType type = ChestModelThroughWalls.type(sprite.atlasLocation());
