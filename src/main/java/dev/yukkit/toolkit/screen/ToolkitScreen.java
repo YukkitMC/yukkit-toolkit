@@ -9,6 +9,7 @@ import dev.yukkit.toolkit.cosmetics.CapeCosmetics;
 import dev.yukkit.toolkit.map.ToolkitMap;
 import dev.yukkit.toolkit.performance.PerformanceController;
 import dev.yukkit.toolkit.modules.XrayController;
+import dev.yukkit.toolkit.render.ChestCandidates;
 import dev.yukkit.toolkit.team.TeamEspColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -30,7 +31,7 @@ import java.util.Locale;
  * only custom-rendered section; there are no hand-drawn panels or button skins.
  */
 public final class ToolkitScreen extends Screen {
-    public enum Page { HOME, VISUAL, CAMERA, MODS, AUTOMATION, TEAM, TEAM_COLOR, STYLE, WORLD, MAP }
+    public enum Page { HOME, VISUAL, CAMERA, MODS, STORAGE, AUTOMATION, TEAM, TEAM_COLOR, STYLE, WORLD, MAP }
 
     private final Screen parent;
     private final Page page;
@@ -59,6 +60,7 @@ public final class ToolkitScreen extends Screen {
             case VISUAL -> "Visual";
             case CAMERA -> "Camera";
             case MODS -> "Mods";
+            case STORAGE -> "Storage ESP";
             case AUTOMATION -> "Automation";
             case TEAM -> "Team";
             case TEAM_COLOR -> "Team Color";
@@ -142,6 +144,48 @@ public final class ToolkitScreen extends Screen {
                 XrayController.toggleChest(Minecraft.getInstance());
                 rebuildWidgets();
             });
+            nativeButton(right, top + 75, pairWidth, "Storage ESP Options...", () -> open(Page.STORAGE));
+            nativeButton(left, top + 100, 308, "Item ESP: " + label(config.itemEsp), () -> {
+                config.itemEsp = !config.itemEsp;
+                change();
+            });
+        } else if (page == Page.STORAGE) {
+            nativeButton(left, top, pairWidth, "Chest: " + label(config.storageChest), () -> {
+                config.storageChest = !config.storageChest; change();
+            });
+            nativeButton(right, top, pairWidth, "Trapped Chest: " + label(config.storageTrapped), () -> {
+                config.storageTrapped = !config.storageTrapped; change();
+            });
+            nativeButton(left, top + 25, pairWidth, "Ender Chest: " + label(config.storageEnder), () -> {
+                config.storageEnder = !config.storageEnder; change();
+            });
+            nativeButton(right, top + 25, pairWidth, "Radius: " + config.storageRangeChunks + " chunks", () -> {
+                config.storageRangeChunks = switch(config.storageRangeChunks) {
+                    case 4 -> 8;
+                    case 8 -> 16;
+                    case 16 -> 32;
+                    default -> 4;
+                };
+                change();
+            });
+            nativeButton(left, top + 50, pairWidth, "Tracers: " + label(config.storageTracers), () -> {
+                config.storageTracers = !config.storageTracers; change();
+            });
+            nativeButton(right, top + 50, pairWidth, "Tracer Color", () -> {
+                config.storageTracerColor = switch(config.storageTracerColor) {
+                    case 0x006EFE -> 0xFF9A33;
+                    case 0xFF9A33 -> 0xB05CFF;
+                    case 0xB05CFF -> 0x27DD7D;
+                    default -> 0x006EFE;
+                };
+                change();
+            });
+            nativeButton(left, top + 75, pairWidth, "Shulker Markers: " + label(config.storageShulkers), () -> {
+                config.storageShulkers = !config.storageShulkers; change();
+            });
+            nativeButton(right, top + 75, pairWidth, "Hopper Markers: " + label(config.storageHoppers), () -> {
+                config.storageHoppers = !config.storageHoppers; change();
+            });
         } else if (page == Page.AUTOMATION) {
             nativeButton(left, top, pairWidth, "Auto Clicker: " + label(config.autoClicker), () -> {
                 config.autoClicker = !config.autoClicker;
@@ -169,6 +213,10 @@ public final class ToolkitScreen extends Screen {
                     case 14 -> 16;
                     default -> 10;
                 };
+                change();
+            });
+            nativeButton(left, top + 75, 308, "Auto Respawn: " + label(config.autoRespawn), () -> {
+                config.autoRespawn = !config.autoRespawn;
                 change();
             });
         } else if (page == Page.TEAM) {
@@ -317,7 +365,7 @@ public final class ToolkitScreen extends Screen {
 
     private void back() {
         if (minecraft != null)
-            minecraft.gui.setScreen(new ToolkitScreen(parent, page == Page.TEAM_COLOR ? Page.TEAM : Page.HOME));
+            minecraft.gui.setScreen(new ToolkitScreen(parent, page == Page.TEAM_COLOR ? Page.TEAM : page == Page.STORAGE ? Page.MODS : Page.HOME));
     }
 
     @Override
@@ -333,6 +381,15 @@ public final class ToolkitScreen extends Screen {
         if (page == Page.CAMERA) {
             graphics.centeredText(font, Component.literal("Freecam: WASD / Space / Shift / Sprint"), width / 2, height / 2 + 25, 0xFFAAAAAA);
             graphics.centeredText(font, Component.literal("Perspective shortcut: V"), width / 2, height / 2 + 39, 0xFFAAAAAA);
+        } else if (page == Page.STORAGE) {
+            int baseline=Math.max(46,height / 2 - 108) + 114;
+            graphics.centeredText(font, Component.literal("Cached chests: " + ChestCandidates.positions().size()
+                    + "    Forced render states: " + ChestCandidates.lastForcedExtracted()),
+                    width / 2,baseline,0xFFFFFFFF);
+            graphics.centeredText(font, Component.literal("The texture is rendered separately; tracers are optional."),
+                    width / 2,baseline + 13,0xFFAAAAAA);
+            graphics.centeredText(font, Component.literal("Only storage in chunks loaded by the client."),
+                    width / 2,baseline + 25,0xFFAAAAAA);
         } else if (page == Page.AUTOMATION) {
             graphics.centeredText(font, Component.literal("Clicker: hold attack on an entity (no auto aim)"), width / 2, height / 2 + 12, 0xFFAAAAAA);
             graphics.centeredText(font, Component.literal("Miner: only the block under your crosshair"), width / 2, height / 2 + 28, 0xFFAAAAAA);
