@@ -19,7 +19,7 @@
 
 Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game options menu, with a focus on straightforward controls, reliable behavior, and low overhead.
 
-> **Early alpha — v0.1.0-alpha.12.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
+> **Early alpha — v0.1.0-alpha.13.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
 
 ## Features
 
@@ -32,13 +32,16 @@ Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game 
 | **Camera** | Perspective | Rotate the camera independently of your character. Default keyboard shortcut: **V**. |
 | **Mods** | Auto Totem | Optional inventory totem refill when the offhand is empty; uses ordinary inventory swaps. Disabled by default. |
 | **Mods** | Ore X-Ray | Optional ore-only client-side block rendering with chunk rebuild. Disabled by default. |
-| **Mods** | Textured Chest ESP | Re-submits the vanilla textured chest model in a depth-independent opaque pass, scanning up to 32 loaded chunks per horizontal direction. No colored bounding box. |
+| **Mods** | Textured Chest ESP | Tries to display the real textured chest through walls with disabled depth/stencil and forced extraction of occluded client-loaded chest states. Adjustable 4–32 loaded-chunk radius. |
+| **Mods** | Storage ESP Settings | Choose normal, trapped or Ender chests; configure loaded-chunk search radius, optional tracer lines and color; show optional shulker/hopper markers. |
+| **Mods** | Item ESP | Optional through-wall highlighted marker for nearby loaded dropped items. |
 | **Mods** | Keystrokes | Lightweight WASD, left/right mouse and SPACE HUD. |
 | **Mods** | TNT Timer | Shows countdowns for up to three nearby loaded primed TNT entities. |
 | **Mods** | Lightweight Graphics | Reversible preset for minimal particles, disabled clouds and render distance capped at 8 chunks. Actual FPS gains depend on your hardware and existing settings. |
 | **Team Time** | Nearby teammate list | Add online or offline-mode names (including dots and hyphens); see loaded nearby players and distances. |
 | **Team Time** | Local Team Glow | Optional wall-visible outlines of already-loaded teammates. Client filter: 64, 256, 512, 2,048 or 10,000 blocks; server entity-tracking distance remains unchanged. |
 | **Team Time** | ESP Glow Color | Eight presets (blue default, cyan, green, red, yellow, purple, white, orange) or any valid #RRGGBB hexadecimal color, stored in local settings. |
+| **Automation** | Auto Respawn | Optional automatic click-equivalent respawn on the standard death screen. Disabled by default. |
 | **Automation** | Auto Clicker | Hold left mouse button over an entity; configurable 4–12 CPS ceiling and ordinary attack cooldown. |
 | **Automation** | Auto Miner | Repeatedly mines only the solid block under your crosshair at ordinary reach. |
 | **Automation** | Mace Swap | Preselects a hotbar mace when falling toward a target; returns to previous hotbar selection after leaving that situation. |
@@ -54,7 +57,9 @@ Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game 
 - **Right Shift:** open/close the Yukkit Toolkit panel.
 - **V:** toggle Perspective when no menu is open.
 - **Freecam:** WASD to move, mouse to rotate, SPACE to ascend, SNEAK to descend, and SPRINT to accelerate.
-- **Mods page:** Auto Totem, Ore X-Ray, Chest ESP, Keystrokes, TNT Timer, Lightweight Graphics and Team HUD.
+- **Mods page:** Auto Totem, Ore X-Ray, Chest Model, Storage ESP Options, Item ESP, Keystrokes, TNT Timer, Lightweight Graphics and Team HUD.
+- **Storage ESP Options:** normal/trapped/Ender chest filters, radius, tracers, tracer colors, optional shulker and hopper markers, scan counts.
+- **Automation page:** Auto Respawn is optional and defaults to disabled.
 - **Automation page:** Auto Clicker, CPS, Auto Miner, Mace Swap, Auto Eat and hunger threshold. All disabled by default.
 - **Team page:** Open **Glow Color** to select a color preset or enter a custom `#RRGGBB` code. Team Color also contains the ESP range control (up to 10,000 blocks), which does not expand server tracking.
 - **ESC:** opens the vanilla pause menu with a new **Yukkit Tools** button.
@@ -72,7 +77,7 @@ Minecraft **26.3** uses SDL input scancodes rather than the older GLFW keycodes.
 
 **Auto Totem.** Only triggers for an empty offhand in the ordinary player inventory; it does not drop an item already held in the offhand. Some servers forbid automation.
 
-**Chest ESP.** When enabled, all ordinary blocks stay visible. Instead of a box, this experimental mode re-submits the actual vanilla ChestModel with its atlas texture in a forced-solid model pass that always passes depth testing. It scans up to 32 already-loaded chunks horizontally around the player (around 512 blocks, limited by the game's available chunk data), at most 64 chunk lookups per tick, and stores at most 1024 chest candidates. The hidden chest render states bypass the usual 64-block client render limit. Only candidates within the camera frustum are submitted. No manual GPU render pass is created, and normal blocks remain visible. Barrels remain unsupported for textured through-wall rendering. It doesn't expose contents, discover unloaded blocks, or render the actual chest texture through terrain. This is an experimental overlay and may not work with every graphics mod or shader.
+**Chest ESP.** When enabled, all ordinary blocks stay visible. Instead of an ordinary blue box, this experimental mode submits the real textured vanilla ChestModel with depth/stencil disabled, extracts hidden chests even when their sections are occluded, and scans up to 32 already-loaded chunks around the player (approximately 512 blocks horizontally, subject to available chunk data). It checks up to 64 chunks per tick, caches up to 1024 candidate chests, and limits extra render-state submission to 192 per frame. Normal terrain remains visible. This has **not** been verified in-game with Iris/Sodium; if the model still disappears, enable optional tracer lines in Storage ESP Options and compare 'cached chests' and 'forced render states' in the same page. Barrels are not supported by this texture model. It doesn't expose contents, discover unloaded blocks, or render the actual chest texture through terrain. This is an experimental overlay and may not work with every graphics mod or shader.
 
 **Automatic gameplay tools.** Auto Clicker only operates while the attack key is held with an entity under the crosshair. Auto Miner only targets the current ray-traced block within reach. Mace Swap preselects a mace during a fall and does not guarantee a smash attack. Auto Eat uses golden carrots already on the hotbar. All are disabled by default; users must follow server rules.
 

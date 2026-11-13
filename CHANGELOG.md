@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.1.0-alpha.13 — 2026-11-12
+
+### Fixed and diagnostic
+- Removed the depth/stencil attachment entirely from the custom textured ChestModel render pipeline rather than relying on ALWAYS_PASS depth comparison.
+- Removed the additional camera-frustum discard when extracting hidden chests from loaded client chunks. Caps extra render states at 192 per frame to limit performance cost.
+- Added cached chest count and forced render-state count to Storage ESP settings for diagnosing render failures with Iris/Sodium.
+
+### New modules from StorageESP reference
+- **Storage ESP Options** using vanilla Minecraft buttons: normal chests, trapped chests, Ender chests, 4/8/16/32 loaded-chunk radius, optional tracer lines and color presets.
+- Optional shulker and hopper markers. These are colored visual markers, while chests use their original textured models.
+- **Item ESP:** optional through-wall markers for dropped items within 64 blocks (loaded entities only).
+- **Auto Respawn:** optional normal respawn action when the standard death screen opens.
+
+### Limitations
+- The root cause of chests disappearing behind walls in the user's Iris/Sodium modpack has **not yet been confirmed by an in-game test**. Shader pass ordering may still interfere. The extra counters and optional tracers can distinguish absent extraction from GPU compositing.
+- The scan is restricted to already-loaded client data; it cannot force server chunks to load, and cannot display storage not sent by the server.
+- Tracers, extra markers, Item ESP and Auto Respawn are off by default.
+
+
+
 ## 0.1.0-alpha.12 — 2026-11-12
 
 ### Fixed
