@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.1.0-alpha.12 — 2026-11-12
+
+### Fixed
+- Textured Chest ESP now submits its duplicate chest model in the opaque solid phase with depth ALWAYS_PASS rather than through the translucent/OIT path. This targets hidden chests disappearing behind terrain, particularly with Iris.
+- Hidden chest render state extraction no longer inherits the vanilla 64-block view-distance restriction.
+
+### Extended
+- Range from 64 blocks to a search of up to 32 already-loaded chunks in each horizontal direction (approximately 512 blocks, subject to chunk availability).
+- Incremental nearest-first scan at 64 chunk lookups per game tick, with a maximum of 1024 cached chest candidates.
+- Frustum culling prevents model submissions behind the camera while still including chests behind walls.
+
+### Limitations
+- No live in-game test in the user's Iris/Sodium modpack has been performed. Compilation alone does not prove that the through-wall effect works.
+- Chunks or block entity data not received from the server cannot be discovered.
+- Barrels are still excluded from the textured ChestRenderer-specific overlay.
+
+
+
 ## 0.1.0-alpha.11 — 2026-11-12
 
 ### New: True-textured Chest ESP

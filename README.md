@@ -19,7 +19,7 @@
 
 Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game options menu, with a focus on straightforward controls, reliable behavior, and low overhead.
 
-> **Early alpha — v0.1.0-alpha.11.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
+> **Early alpha — v0.1.0-alpha.12.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
 
 ## Features
 
@@ -32,7 +32,7 @@ Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game 
 | **Camera** | Perspective | Rotate the camera independently of your character. Default keyboard shortcut: **V**. |
 | **Mods** | Auto Totem | Optional inventory totem refill when the offhand is empty; uses ordinary inventory swaps. Disabled by default. |
 | **Mods** | Ore X-Ray | Optional ore-only client-side block rendering with chunk rebuild. Disabled by default. |
-| **Mods** | Textured Chest ESP | Attempts to draw the actual vanilla textured chest model through blocks for loaded chests, trapped chests and Ender chests. No colored bounding box or gizmo. |
+| **Mods** | Textured Chest ESP | Re-submits the vanilla textured chest model in a depth-independent opaque pass, scanning up to 32 loaded chunks per horizontal direction. No colored bounding box. |
 | **Mods** | Keystrokes | Lightweight WASD, left/right mouse and SPACE HUD. |
 | **Mods** | TNT Timer | Shows countdowns for up to three nearby loaded primed TNT entities. |
 | **Mods** | Lightweight Graphics | Reversible preset for minimal particles, disabled clouds and render distance capped at 8 chunks. Actual FPS gains depend on your hardware and existing settings. |
@@ -72,7 +72,7 @@ Minecraft **26.3** uses SDL input scancodes rather than the older GLFW keycodes.
 
 **Auto Totem.** Only triggers for an empty offhand in the ordinary player inventory; it does not drop an item already held in the offhand. Some servers forbid automation.
 
-**Chest ESP.** When enabled, all ordinary blocks stay visible. Instead of an outline or box, this experimental mode re-submits Minecraft 26.3's actual vanilla ChestModel with its atlas texture, using a depth-independent render type. Hidden chests loaded by the client can be extracted from their block entities (capped at 96 within 64 blocks) without changing the world terrain. No manual GPU render pass is created. Normal barrels continue rendering normally; they are not yet textured through walls. It doesn't expose contents, discover unloaded blocks, or render the actual chest texture through terrain. This is an experimental overlay and may not work with every graphics mod or shader.
+**Chest ESP.** When enabled, all ordinary blocks stay visible. Instead of a box, this experimental mode re-submits the actual vanilla ChestModel with its atlas texture in a forced-solid model pass that always passes depth testing. It scans up to 32 already-loaded chunks horizontally around the player (around 512 blocks, limited by the game's available chunk data), at most 64 chunk lookups per tick, and stores at most 1024 chest candidates. The hidden chest render states bypass the usual 64-block client render limit. Only candidates within the camera frustum are submitted. No manual GPU render pass is created, and normal blocks remain visible. Barrels remain unsupported for textured through-wall rendering. It doesn't expose contents, discover unloaded blocks, or render the actual chest texture through terrain. This is an experimental overlay and may not work with every graphics mod or shader.
 
 **Automatic gameplay tools.** Auto Clicker only operates while the attack key is held with an entity under the crosshair. Auto Miner only targets the current ray-traced block within reach. Mace Swap preselects a mace during a fall and does not guarantee a smash attack. Auto Eat uses golden carrots already on the hotbar. All are disabled by default; users must follow server rules.
 
