@@ -378,7 +378,8 @@ public final class ToolkitScreen extends Screen {
     }
 
     private void open(Page page) {
-        if (minecraft != null) minecraft.gui.setScreen(new ToolkitScreen(parent, page));
+        if (minecraft != null) minecraft.gui.setScreen(page == Page.MODULES
+                ? new ClickGuiScreen(this) : new ToolkitScreen(parent, page));
     }
 
     private void back() {
