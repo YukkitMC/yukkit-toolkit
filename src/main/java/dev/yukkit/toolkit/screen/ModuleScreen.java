@@ -1,54 +1,128 @@
 package dev.yukkit.toolkit.screen;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import dev.yukkit.toolkit.ToolkitConfig;
 import dev.yukkit.toolkit.core.Category;
 import dev.yukkit.toolkit.core.Module;
 import dev.yukkit.toolkit.core.ModuleManager;
 import dev.yukkit.toolkit.core.Setting;
+import dev.yukkit.toolkit.team.TeamEspColor;
+import dev.yukkit.toolkit.team.TeamNames;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
- * Module browser with a translucent-black surface, a single blue accent, white/dimmed-grey text and
- * switch-style toggles. Category tabs on top, module grid on the left, settings of the
- * selected module on the right. Left click toggles / steps, right click selects / steps back.
+ * Window-style module browser: grey title bar with small icon buttons, a left tab column
+ * (selected tab in cyan, stats at the bottom), a dark content pane with a section header,
+ * a search box, striped rows and green / blue action buttons.
+ * Tabs: the eight module categories plus Teams. Typing filters modules across every category.
  */
 public final class ModuleScreen extends Screen {
-    // Palette: black surface at several opacities, one accent, success green, dimmed text.
-    private static final int SURFACE_68 = 0xAD000000;
-    private static final int SURFACE_50 = 0x80000000;
-    private static final int SURFACE_36 = 0x5C000000;
-    private static final int SURFACE_90 = 0xE6000000;
-    private static final int ACCENT = 0xFF4677FF;
-    private static final int SUCCESS = 0xFF4DAC68;
-    private static final int TEXT = 0xFFFFFFFF;
-    private static final int TEXT_DIM = 0xFFD3D3D3;
+    // Palette
+    private static final int OUTLINE = 0xFF1B1B1B;
+    private static final int TITLE_BG = 0xFF7D7D7D;
+    private static final int SIDE_BG = 0xFF696969;
+    private static final int CONTENT_BG = 0xFF3A3A3A;
+    private static final int ROW_BG = 0xFF515151;
+    private static final int ROW_HOVER = 0xFF5F5F5F;
+    private static final int ROW_SELECTED = 0xFF6C6C6C;
+    private static final int ICON_BG = 0xFF555555;
+    private static final int ICON_EDGE = 0xFFC4C4C4;
+    private static final int WHITE = 0xFFFFFFFF;
+    private static final int DIM = 0xFFC8C8C8;
+    private static final int FAINT = 0xFF9A9A9A;
+    private static final int CYAN = 0xFF55D8FF;
+    private static final int GREEN = 0xFF3FA83F;
+    private static final int GREEN_EDGE = 0xFF7BE87B;
+    private static final int BLUE = 0xFF2E7FE8;
+    private static final int BLUE_EDGE = 0xFF7DB8FF;
+    private static final int RED = 0xFFFF5555;
+    private static final int SWITCH_ON = 0xFF4DAC68;
+    private static final int SWITCH_OFF = 0xFF2B2B2B;
 
-    private static final int TAB_H = 22, ROW_H = 16, CELL_W = 112, SET_W = 168, PAD = 6;
+    private static final int SIDEBAR_W = 100, TITLE_H = 22, ROW_H = 18, BTN_H = 20;
+    private static final int TEAMS_VIEW = Category.values().length;
+    private static final int MAX_TEAM = 64;
+
+    private enum Kind { MODULE, SETTING, LABEL, SWATCHES, MEMBER, NEARBY, TEAM_TOGGLE }
+
+    private static final class Row {
+        final Kind kind;
+        final String text;
+        Module module;
+        Setting<?> setting;
+        String name;
+        Row(Kind kind, String text) { this.kind = kind; this.text = text; }
+    }
 
     private final Screen parent;
-    private Category category = Category.COMBAT;
+    private int view = 0;
+    private String search = "";
+    private int scroll = 0;
     private Module selected;
-    private int scroll;
-    private int settingScroll;
+    private Module expanded;
+    private String feedback = "";
 
-    // Hit boxes recomputed each frame: {x1, y1, x2, y2}
+    private EditBox box;
+    private String teamInput = "";
+
+    // layout (recomputed in init)
+    private int x0, y0, w, h;
+
+    // hit boxes: {x1, y1, x2, y2}
     private final List<int[]> tabHits = new ArrayList<>();
-    private final List<int[]> moduleHits = new ArrayList<>();
-    private final List<Module> moduleHitTargets = new ArrayList<>();
-    private final List<int[]> settingHits = new ArrayList<>();
-    private final List<Setting<?>> settingHitTargets = new ArrayList<>();
+    private final List<int[]> rowHits = new ArrayList<>();
+    private final List<Row> rowTargets = new ArrayList<>();
+    private int[] closeHit, classicHit, greenHit, blueHit;
+    private final List<int[]> swatchHits = new ArrayList<>();
 
     public ModuleScreen(Screen parent) {
-        super(Component.literal("Yukkit Modules"));
+        super(Component.literal("Yukkit Toolkit"));
         this.parent = parent;
     }
+
+    // ------------------------------------------------------------------ setup
+    @Override
+    protected void init() {
+        super.init();
+        w = Math.min(width - 16, 430);
+        h = Math.min(height - 16, 270);
+        x0 = (width - w) / 2;
+        y0 = (height - h) / 2;
+
+        boolean teams = view == TEAMS_VIEW;
+        box = new EditBox(font, contentX() + 8, y0 + TITLE_H + 22, contentW() - 16, 16,
+                Component.literal(teams ? "Player name" : "Search modules"));
+        box.setMaxLength(32);
+        box.setHint(Component.literal(teams ? "Player name (offline names allowed)" : "Search all modules..."));
+        box.setValue(teams ? teamInput : search);
+        box.setResponder(text -> {
+            if (view == TEAMS_VIEW) teamInput = text;
+            else {
+                search = text;
+                scroll = 0;
+            }
+        });
+        addRenderableWidget(box);
+        setInitialFocus(box);
+    }
+
+    private int contentX() { return x0 + SIDEBAR_W; }
+    private int contentW() { return w - SIDEBAR_W; }
+    private int listTop() { return y0 + TITLE_H + 44; }
+    private int bottomBarY() { return y0 + h - 28; }
+    private int visibleRows() { return Math.max(1, (bottomBarY() - 4 - listTop()) / ROW_H); }
 
     @Override
     public void onClose() {
@@ -59,154 +133,356 @@ public final class ModuleScreen extends Screen {
     @Override
     public boolean isPauseScreen() { return false; }
 
-    private int settingsX;
-    private int panelTop() { return 28; }
-    private int gridCols() { return Math.max(1, Math.min(4, (width - SET_W - PAD * 4 - 16) / CELL_W)); }
-    private int panelBottom() { return height - 12; }
+    private void switchView(int next) {
+        if (next == view) return;
+        view = next;
+        scroll = 0;
+        feedback = "";
+        rebuildWidgets();
+    }
 
-    @Override
-    public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float delta) {
-        g.fill(0, 0, width, height, 0x66000000);
-        tabHits.clear();
-        moduleHits.clear();
-        moduleHitTargets.clear();
-        settingHits.clear();
-        settingHitTargets.clear();
-
-        int cols = gridCols();
-        int left = Math.max(8, (width - (cols * CELL_W + SET_W + PAD * 3)) / 2);
-        int top = panelTop();
-        int gridW = cols * CELL_W;
-        int total = gridW + SET_W + PAD * 3;
-
-        // ---- tab bar
-        g.fill(left, top - TAB_H, left + total, top, SURFACE_68);
-        Category[] cats = Category.values();
-        int tabW = total / cats.length;
-        for (int i = 0; i < cats.length; i++) {
-            int x1 = left + i * tabW, x2 = i == cats.length - 1 ? left + total : x1 + tabW;
-            boolean active = cats[i] == category;
-            if (active) g.fill(x1, top - 2, x2, top, ACCENT);
-            g.text(font, cats[i].label, x1 + (x2 - x1 - font.width(cats[i].label)) / 2, top - TAB_H + 7,
-                    active ? TEXT : TEXT_DIM, true);
-            tabHits.add(new int[]{x1, top - TAB_H, x2, top});
-        }
-
-        // ---- module grid
-        int gx = left + PAD;
-        int gTop = top + PAD;
-        int gBottom = panelBottom();
-        g.fill(left, top, left + gridW + PAD * 2, gBottom, SURFACE_50);
-        List<Module> mods = ModuleManager.inCategory(category);
-        int rows = Math.max(1, (gBottom - gTop - PAD) / ROW_H);
-        int perPage = rows * cols;
-        int maxScroll = Math.max(0, (mods.size() - perPage + cols - 1) / cols);
-        scroll = Math.max(0, Math.min(maxScroll, scroll));
-        int first = scroll * cols;
-        for (int i = first; i < mods.size() && i < first + perPage; i++) {
-            Module m = mods.get(i);
-            int idx = i - first;
-            int x1 = gx + (idx % cols) * CELL_W, y1 = gTop + (idx / cols) * ROW_H;
-            int x2 = x1 + CELL_W - 3, y2 = y1 + ROW_H - 2;
-            boolean hover = mx >= x1 && mx < x2 && my >= y1 && my < y2;
-            g.fill(x1, y1, x2, y2, m == selected ? SURFACE_90 : hover ? SURFACE_68 : SURFACE_36);
-            if (m.isEnabled()) g.fill(x1, y1, x1 + 2, y2, ACCENT);
-            g.text(font, m.name, x1 + 6, y1 + 4, m.isEnabled() ? TEXT : TEXT_DIM, true);
-            moduleHits.add(new int[]{x1, y1, x2, y2});
-            moduleHitTargets.add(m);
-        }
-        if (maxScroll > 0) {
-            String hint = (scroll + 1) + "/" + (maxScroll + 1);
-            g.text(font, hint, left + gridW + PAD * 2 - font.width(hint) - 4, top + 2, TEXT_DIM, true);
-        }
-
-        // ---- settings panel
-        int sx = left + gridW + PAD * 2 + PAD;
-        settingsX = sx;
-        g.fill(sx, top, sx + SET_W, gBottom, SURFACE_68);
-        if (selected == null) {
-            g.text(font, "Right-click a module", sx + 8, top + 8, TEXT_DIM, true);
-            g.text(font, "to see its settings.", sx + 8, top + 20, TEXT_DIM, true);
-        } else {
-            g.text(font, selected.name, sx + 8, top + 8, TEXT, true);
-            drawSwitch(g, sx + SET_W - 30, top + 6, selected.isEnabled());
-            settingHits.add(new int[]{sx + SET_W - 30, top + 6, sx + SET_W - 8, top + 16});
-            settingHitTargets.add(null);
-            g.text(font, trim(selected.description, SET_W - 16), sx + 8, top + 22, TEXT_DIM, true);
-            int y = top + 40;
-            List<Setting<?>> list = selected.settings();
-            int visible = Math.max(1, (gBottom - y - 4) / ROW_H);
-            settingScroll = Math.max(0, Math.min(Math.max(0, list.size() - visible), settingScroll));
-            for (int i = settingScroll; i < list.size() && i < settingScroll + visible; i++) {
-                Setting<?> s = list.get(i);
-                int x1 = sx + 6, x2 = sx + SET_W - 6;
-                boolean hover = mx >= x1 && mx < x2 && my >= y && my < y + ROW_H - 2;
-                g.fill(x1, y, x2, y + ROW_H - 2, hover ? SURFACE_90 : SURFACE_36);
-                g.text(font, s.name, x1 + 5, y + 4, TEXT_DIM, true);
-                if (s instanceof Setting.Bool b) {
-                    drawSwitch(g, x2 - 26, y + 3, b.get());
-                } else {
-                    String v = s.display();
-                    g.text(font, v, x2 - 5 - font.width(v), y + 4, ACCENT, true);
-                }
-                settingHits.add(new int[]{x1, y, x2, y + ROW_H - 2});
-                settingHitTargets.add(s);
-                y += ROW_H;
+    // ----------------------------------------------------------------- rows
+    private List<Row> buildRows() {
+        List<Row> rows = new ArrayList<>();
+        if (view == TEAMS_VIEW) {
+            rows.add(new Row(Kind.TEAM_TOGGLE, "Glow teammates through walls"));
+            rows.add(new Row(Kind.SWATCHES, "Team color"));
+            ToolkitConfig cfg = ToolkitConfig.INSTANCE;
+            int members = cfg.teamMates == null ? 0 : cfg.teamMates.size();
+            rows.add(new Row(Kind.LABEL, "Members [" + members + "/" + MAX_TEAM + "]"));
+            if (members == 0) rows.add(new Row(Kind.LABEL, "  nobody yet - type a name and press Add"));
+            for (int i = 0; members > 0 && i < members; i++) {
+                Row r = new Row(Kind.MEMBER, cfg.teamMates.get(i));
+                r.name = cfg.teamMates.get(i);
+                rows.add(r);
             }
-            if (list.isEmpty()) g.text(font, "No settings.", sx + 8, top + 42, TEXT_DIM, true);
+            rows.add(new Row(Kind.LABEL, "Nearby players"));
+            boolean any = false;
+            if (minecraft != null && minecraft.level != null && minecraft.player != null) {
+                for (Entity e : minecraft.level.entitiesForRendering()) {
+                    if (!(e instanceof Player p) || p == minecraft.player) continue;
+                    String n = p.getName().getString();
+                    if (inTeam(n)) continue;
+                    Row r = new Row(Kind.NEARBY, n);
+                    r.name = n;
+                    rows.add(r);
+                    any = true;
+                    if (rows.size() > 400) break;
+                }
+            }
+            if (!any) rows.add(new Row(Kind.LABEL, "  nobody nearby"));
+            return rows;
         }
-        g.text(font, "Left: toggle / next    Right: select / previous    Wheel: scroll    RShift: close",
-                left, gBottom + 2, TEXT_DIM, true);
+
+        String q = search.trim().toLowerCase(Locale.ROOT);
+        List<Module> source = new ArrayList<>();
+        if (q.isEmpty()) {
+            source.addAll(ModuleManager.inCategory(Category.values()[view]));
+        } else {
+            for (Module m : ModuleManager.all()) {
+                if (m.name.toLowerCase(Locale.ROOT).contains(q) || m.description.toLowerCase(Locale.ROOT).contains(q)) source.add(m);
+            }
+        }
+        for (Module m : source) {
+            Row r = new Row(Kind.MODULE, m.name);
+            r.module = m;
+            rows.add(r);
+            if (m == expanded) {
+                for (Setting<?> s : m.settings()) {
+                    Row sr = new Row(Kind.SETTING, s.name);
+                    sr.module = m;
+                    sr.setting = s;
+                    rows.add(sr);
+                }
+                if (m.settings().isEmpty()) rows.add(new Row(Kind.LABEL, "    no settings"));
+            }
+        }
+        return rows;
+    }
+
+    private static boolean inTeam(String name) {
+        List<String> list = ToolkitConfig.INSTANCE.teamMates;
+        if (list == null) return false;
+        for (String s : list) if (s.equalsIgnoreCase(name)) return true;
+        return false;
+    }
+
+    // --------------------------------------------------------------- drawing
+    private static void outline(GuiGraphicsExtractor g, int x1, int y1, int x2, int y2, int color) {
+        g.fill(x1, y1, x2, y1 + 1, color);
+        g.fill(x1, y2 - 1, x2, y2, color);
+        g.fill(x1, y1, x1 + 1, y2, color);
+        g.fill(x2 - 1, y1, x2, y2, color);
+    }
+
+    private void button(GuiGraphicsExtractor g, int[] r, String label, int fill, int edge, boolean enabled) {
+        g.fill(r[0], r[1], r[2], r[3], enabled ? fill : 0xFF4A4A4A);
+        outline(g, r[0], r[1], r[2], r[3], enabled ? edge : 0xFF6A6A6A);
+        g.text(font, label, r[0] + (r[2] - r[0] - font.width(label)) / 2, r[1] + 6, enabled ? WHITE : FAINT, true);
     }
 
     private void drawSwitch(GuiGraphicsExtractor g, int x, int y, boolean on) {
-        g.fill(x, y, x + 22, y + 10, on ? SUCCESS : 0xFF3A3A3A);
-        int knob = on ? x + 12 : x + 2;
-        g.fill(knob, y + 2, knob + 8, y + 8, TEXT);
-    }
-
-    private String trim(String s, int maxWidth) {
-        if (font.width(s) <= maxWidth) return s;
-        while (s.length() > 1 && font.width(s + "...") > maxWidth) s = s.substring(0, s.length() - 1);
-        return s + "...";
+        g.fill(x, y, x + 22, y + 10, on ? SWITCH_ON : SWITCH_OFF);
+        outline(g, x, y, x + 22, y + 10, OUTLINE);
+        int knob = on ? x + 13 : x + 2;
+        g.fill(knob, y + 2, knob + 7, y + 8, WHITE);
     }
 
     private static boolean inside(int[] r, double x, double y) {
-        return x >= r[0] && x < r[2] && y >= r[1] && y < r[3];
+        return r != null && x >= r[0] && x < r[2] && y >= r[1] && y < r[3];
+    }
+
+    private int enabledCount() {
+        int n = 0;
+        for (Module m : ModuleManager.all()) if (m.isEnabled()) n++;
+        return n;
+    }
+
+    private String version() {
+        try {
+            return FabricLoader.getInstance().getModContainer("yukkit_toolkit")
+                    .map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?");
+        } catch (Throwable t) {
+            return "?";
+        }
+    }
+
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float delta) {
+        // Vanilla background first; it also draws the EditBox, so panels below leave a hole for it.
+        super.extractRenderState(g, mx, my, delta);
+        tabHits.clear();
+        rowHits.clear();
+        rowTargets.clear();
+        swatchHits.clear();
+
+        int x1 = x0, y1 = y0, x2 = x0 + w, y2 = y0 + h;
+        int cx = contentX();
+
+        // ---- window + title bar
+        g.fill(x1, y1, x2, y2, SIDE_BG);
+        g.fill(x1, y1, x2, y1 + TITLE_H, TITLE_BG);
+        g.fill(x1, y1 + TITLE_H - 1, x2, y1 + TITLE_H, OUTLINE);
+        g.text(font, "Yukkit Toolkit", x1 + 8, y1 + 7, WHITE, true);
+
+        closeHit = new int[]{x2 - 22, y1 + 2, x2 - 4, y1 + 20};
+        classicHit = new int[]{x2 - 44, y1 + 2, x2 - 26, y1 + 20};
+        for (int[] r : new int[][]{closeHit, classicHit}) {
+            g.fill(r[0], r[1], r[2], r[3], ICON_BG);
+            outline(g, r[0], r[1], r[2], r[3], inside(r, mx, my) ? WHITE : ICON_EDGE);
+        }
+        outline(g, classicHit[0] + 5, classicHit[1] + 5, classicHit[2] - 5, classicHit[3] - 5, WHITE);
+        g.text(font, "X", closeHit[0] + 6, closeHit[1] + 5, WHITE, true);
+
+        // ---- sidebar
+        Category[] cats = Category.values();
+        int ty = y1 + TITLE_H + 10;
+        for (int i = 0; i <= cats.length; i++) {
+            String label = i == TEAMS_VIEW ? "Teams" : cats[i].label;
+            boolean active = i == view && search.isBlank();
+            boolean hover = mx >= x1 + 4 && mx < cx - 4 && my >= ty - 3 && my < ty + 11;
+            g.text(font, label, x1 + 12, ty, active ? CYAN : hover ? WHITE : DIM, true);
+            tabHits.add(new int[]{x1 + 4, ty - 3, cx - 4, ty + 11});
+            ty += 15;
+        }
+        int fy = y2 - 52;
+        g.text(font, "Active", x1 + 12, fy, WHITE, true);
+        g.text(font, enabledCount() + " / " + ModuleManager.all().size(), x1 + 12, fy + 10, SWITCH_ON, true);
+        g.text(font, "Version", x1 + 12, fy + 24, WHITE, true);
+        g.text(font, version() + " Fabric", x1 + 12, fy + 34, DIM, true);
+
+        // ---- content pane (leaves a hole for the search box)
+        int px1 = cx, py1 = y1 + TITLE_H, px2 = x2, py2 = y2;
+        int bx1 = box.getX(), by1 = box.getY(), bx2 = bx1 + box.getWidth(), by2 = by1 + box.getHeight();
+        g.fill(px1, py1, px2, by1, CONTENT_BG);
+        g.fill(px1, by2, px2, py2, CONTENT_BG);
+        g.fill(px1, by1, bx1, by2, CONTENT_BG);
+        g.fill(bx2, by1, px2, by2, CONTENT_BG);
+        g.fill(px1, py1, px1 + 1, py2, OUTLINE);
+        outline(g, x1, y1, x2, y2, OUTLINE);
+
+        // ---- header with trailing line
+        List<Row> rows = buildRows();
+        String title;
+        if (view == TEAMS_VIEW) title = "Teams";
+        else if (!search.isBlank()) title = "Search";
+        else title = cats[view].label;
+        int count = view == TEAMS_VIEW ? 0 : (int) rows.stream().filter(r -> r.kind == Kind.MODULE).count();
+        String head = view == TEAMS_VIEW ? title : title + " [" + count + "]";
+        g.text(font, head, cx + 8, py1 + 8, WHITE, true);
+        g.fill(cx + 12 + font.width(head), py1 + 12, px2 - 8, py1 + 13, DIM);
+
+        // ---- rows
+        int visible = visibleRows();
+        int maxScroll = Math.max(0, rows.size() - visible);
+        scroll = Math.max(0, Math.min(maxScroll, scroll));
+        int y = listTop();
+        int rx1 = cx + 8, rx2 = px2 - 8;
+        for (int i = scroll; i < rows.size() && i < scroll + visible; i++) {
+            Row r = rows.get(i);
+            int[] hit = {rx1, y, rx2, y + ROW_H - 2};
+            boolean hover = inside(hit, mx, my);
+            switch (r.kind) {
+                case MODULE -> {
+                    Module m = r.module;
+                    g.fill(hit[0], hit[1], hit[2], hit[3], m == selected ? ROW_SELECTED : hover ? ROW_HOVER : ROW_BG);
+                    g.text(font, m.name, hit[0] + 6, hit[1] + 5, m.isEnabled() ? WHITE : DIM, true);
+                    String extra = !search.isBlank() ? m.category.label : m.tag();
+                    if (!extra.isEmpty()) g.text(font, extra, hit[0] + 12 + font.width(m.name), hit[1] + 5, FAINT, true);
+                    drawSwitch(g, hit[2] - 28, hit[1] + 4, m.isEnabled());
+                }
+                case SETTING -> {
+                    g.fill(hit[0] + 10, hit[1], hit[2], hit[3], hover ? ROW_HOVER : 0xFF464646);
+                    g.text(font, r.setting.name, hit[0] + 16, hit[1] + 5, DIM, true);
+                    if (r.setting instanceof Setting.Bool b) drawSwitch(g, hit[2] - 28, hit[1] + 4, b.get());
+                    else {
+                        String v = r.setting.display();
+                        g.text(font, v, hit[2] - 6 - font.width(v), hit[1] + 5, CYAN, true);
+                    }
+                }
+                case LABEL -> g.text(font, r.text, hit[0] + 2, hit[1] + 5, DIM, true);
+                case SWATCHES -> {
+                    g.fill(hit[0], hit[1], hit[2], hit[3], ROW_BG);
+                    g.text(font, r.text, hit[0] + 6, hit[1] + 5, WHITE, true);
+                    int sx = hit[2] - 8 * 14 - 2;
+                    for (int c = 0; c < TeamEspColor.VALUES.length; c++) {
+                        int[] s = {sx + c * 14, hit[1] + 3, sx + c * 14 + 12, hit[1] + 15};
+                        g.fill(s[0], s[1], s[2], s[3], 0xFF000000 | TeamEspColor.VALUES[c]);
+                        boolean cur = TeamEspColor.VALUES[c] == TeamEspColor.rgb();
+                        outline(g, s[0], s[1], s[2], s[3], cur ? WHITE : OUTLINE);
+                        swatchHits.add(s);
+                    }
+                }
+                case TEAM_TOGGLE -> {
+                    g.fill(hit[0], hit[1], hit[2], hit[3], hover ? ROW_HOVER : ROW_BG);
+                    g.text(font, r.text, hit[0] + 6, hit[1] + 5, WHITE, true);
+                    drawSwitch(g, hit[2] - 28, hit[1] + 4, ToolkitConfig.INSTANCE.teamGlow);
+                }
+                case MEMBER -> {
+                    g.fill(hit[0], hit[1], hit[2], hit[3], hover ? ROW_HOVER : ROW_BG);
+                    g.text(font, r.text, hit[0] + 6, hit[1] + 5, WHITE, true);
+                    g.text(font, "Remove", hit[2] - 6 - font.width("Remove"), hit[1] + 5, RED, true);
+                }
+                case NEARBY -> {
+                    g.fill(hit[0], hit[1], hit[2], hit[3], hover ? ROW_HOVER : ROW_BG);
+                    g.text(font, r.text, hit[0] + 6, hit[1] + 5, DIM, true);
+                    g.text(font, "Add", hit[2] - 6 - font.width("Add"), hit[1] + 5, SWITCH_ON, true);
+                }
+            }
+            rowHits.add(hit);
+            rowTargets.add(r);
+            y += ROW_H;
+        }
+        if (maxScroll > 0) {
+            String pos = (scroll + 1) + "-" + Math.min(rows.size(), scroll + visible) + " / " + rows.size();
+            g.text(font, pos, px2 - 8 - font.width(pos), py1 + 8, FAINT, true);
+        }
+
+        // ---- bottom bar
+        int by = bottomBarY();
+        int bw = Math.min(110, (contentW() - 28) / 2);
+        greenHit = new int[]{px2 - 8 - bw * 2 - 6, by + 4, px2 - 8 - bw - 6, by + 4 + BTN_H};
+        blueHit = new int[]{px2 - 8 - bw, by + 4, px2 - 8, by + 4 + BTN_H};
+        if (view == TEAMS_VIEW) {
+            button(g, greenHit, "Add", GREEN, GREEN_EDGE, true);
+            button(g, blueHit, "Clear All", BLUE, BLUE_EDGE, true);
+        } else {
+            boolean has = selected != null;
+            button(g, greenHit, has ? (selected.isEnabled() ? "Disable" : "Enable") : "Enable", GREEN, GREEN_EDGE, has);
+            button(g, blueHit, has && expanded == selected ? "Hide Settings" : "Settings", BLUE, BLUE_EDGE, has);
+        }
+        String hint = !feedback.isEmpty() ? feedback
+                : view == TEAMS_VIEW ? "Click a nearby player to add; click a member to remove."
+                : "Left: toggle   Right: settings   Wheel: scroll   RShift: close";
+        g.text(font, hint, cx + 8, by + 10, !feedback.isEmpty() ? 0xFFFFAA55 : FAINT, true);
+    }
+
+    // ----------------------------------------------------------------- input
+    private void addTeammate(String name) {
+        name = name.trim();
+        if (!name.matches("[A-Za-z0-9_.-]{1,32}")) {
+            feedback = "Use 1-32 characters: letters, numbers, . _ -";
+            return;
+        }
+        ToolkitConfig cfg = ToolkitConfig.INSTANCE;
+        if (cfg.teamMates == null) cfg.teamMates = new ArrayList<>();
+        if (inTeam(name)) {
+            feedback = "Already in your team";
+            return;
+        }
+        if (cfg.teamMates.size() >= MAX_TEAM) {
+            feedback = "Team list is full (" + MAX_TEAM + ")";
+            return;
+        }
+        cfg.teamMates.add(name);
+        feedback = "";
+        cfg.save();
+        TeamNames.refresh();
     }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
         double x = event.x(), y = event.y();
         int button = event.button();
+
+        if (inside(closeHit, x, y)) { onClose(); return true; }
+        if (inside(classicHit, x, y)) {
+            if (minecraft != null) minecraft.gui.setScreen(new ToolkitScreen(this));
+            return true;
+        }
         for (int i = 0; i < tabHits.size(); i++) {
             if (inside(tabHits.get(i), x, y)) {
-                category = Category.values()[i];
-                selected = null;
-                scroll = 0;
-                settingScroll = 0;
+                search = "";
+                if (i == view) rebuildWidgets(); else switchView(i);
                 return true;
             }
         }
-        for (int i = 0; i < moduleHits.size(); i++) {
-            if (!inside(moduleHits.get(i), x, y)) continue;
-            Module m = moduleHitTargets.get(i);
-            if (button == 1) {
-                selected = m;
-                settingScroll = 0;
-            } else if (button == 0) {
-                m.toggle();
-            }
+        if (inside(greenHit, x, y)) {
+            if (view == TEAMS_VIEW) {
+                addTeammate(teamInput);
+                if (feedback.isEmpty()) { teamInput = ""; rebuildWidgets(); }
+            } else if (selected != null) selected.toggle();
             return true;
         }
-        for (int i = 0; i < settingHits.size(); i++) {
-            if (!inside(settingHits.get(i), x, y)) continue;
-            Setting<?> s = settingHitTargets.get(i);
-            if (s == null) {
-                if (selected != null) selected.toggle();
-            } else {
-                s.step(button != 1);
-                ModuleManager.save();
+        if (inside(blueHit, x, y)) {
+            if (view == TEAMS_VIEW) {
+                ToolkitConfig cfg = ToolkitConfig.INSTANCE;
+                if (cfg.teamMates != null) cfg.teamMates.clear();
+                cfg.save();
+                TeamNames.refresh();
+            } else if (selected != null) expanded = expanded == selected ? null : selected;
+            return true;
+        }
+        for (int i = 0; i < swatchHits.size(); i++) {
+            if (inside(swatchHits.get(i), x, y)) {
+                TeamEspColor.setPreset(i % TeamEspColor.VALUES.length);
+                return true;
+            }
+        }
+        for (int i = 0; i < rowHits.size(); i++) {
+            if (!inside(rowHits.get(i), x, y)) continue;
+            Row r = rowTargets.get(i);
+            switch (r.kind) {
+                case MODULE -> {
+                    selected = r.module;
+                    if (button == 0) r.module.toggle();
+                    else if (button == 1) expanded = expanded == r.module ? null : r.module;
+                }
+                case SETTING -> {
+                    r.setting.step(button != 1);
+                    ModuleManager.save();
+                }
+                case TEAM_TOGGLE -> {
+                    ToolkitConfig.INSTANCE.teamGlow = !ToolkitConfig.INSTANCE.teamGlow;
+                    ToolkitConfig.INSTANCE.save();
+                }
+                case MEMBER -> {
+                    ToolkitConfig.INSTANCE.teamMates.removeIf(s -> s.equalsIgnoreCase(r.name));
+                    ToolkitConfig.INSTANCE.save();
+                    TeamNames.refresh();
+                }
+                case NEARBY -> addTeammate(r.name);
+                default -> { }
             }
             return true;
         }
@@ -215,8 +491,7 @@ public final class ModuleScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        int dir = scrollY > 0 ? -1 : 1;
-        if (mouseX >= settingsX) settingScroll += dir; else scroll += dir;
+        scroll += scrollY > 0 ? -2 : 2;
         return true;
     }
 

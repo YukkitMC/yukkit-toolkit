@@ -7,7 +7,7 @@ public final class RenderModules {
 
     public static void register() {
         ModuleManager.register(
-                new ESP(),
+                new ESP(), new PlayerESP(),
                 new Tracers(),
                 new BlockESP(),
                 new HoleESP(),
