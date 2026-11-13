@@ -1,10 +1,30 @@
 {
   "required": false,
   "minVersion": "0.8",
-  "package": "dev.yukkit.toolkit.mixin",
+  "package": "dev.yukkit.toolkit",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "ConnectionMixin"
+    "mixin.ConnectionMixin",
+    "modules.combat.mixin.HitboxMixin",
+    "modules.combat.mixin.KeepSprintMixin",
+    "modules.exploit.mixin.AntiReducedDebugInfoMixin",
+    "modules.exploit.mixin.MultiActionsMixin",
+    "modules.exploit.mixin.NoPitchLimitMixin",
+    "modules.exploit.mixin.PortalMenuMixin",
+    "modules.misc.mixin.ItemScrollerMixin",
+    "modules.movement.mixin.ClientLevelPushMixin",
+    "modules.movement.mixin.EntityStuckMixin",
+    "modules.movement.mixin.LivingEntityJumpAccessor",
+    "modules.movement.mixin.LocalPlayerMovementMixin",
+    "modules.movement.mixin.MovementInputMixin",
+    "modules.movement.mixin.PlayerSafeWalkMixin",
+    "modules.render.mixin.CameraFovMixin",
+    "modules.render.mixin.GameRendererMixin",
+    "modules.render.mixin.PlayerFovMixin",
+    "modules.render.mixin.ScreenEffectMixin",
+    "modules.world.mixin.ClientDelayAccessor",
+    "modules.world.mixin.GameModeDelayAccessor",
+    "modules.world.mixin.TimerMixin"
   ],
   "injectors": {
     "defaultRequire": 0

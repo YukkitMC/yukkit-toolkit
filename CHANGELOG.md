@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.0-alpha.1 — 2026-11-13
+
+### Added
+- New module system (`core`): typed settings, persistence in `config/yukkit-toolkit-modules.json`, packet hooks and a gizmo/HUD hook.
+- 139 modules written from scratch (no LiquidBounce code): Combat 17, Movement 31, Player 22, World 22, Exploit 11, Render 16, Misc 15, Fun 5.
+- New module screen (**Right Shift**): category tabs, module grid and per-module settings, with a translucent dark surface and a single blue accent. The earlier vanilla-style screen is still available from the pause menu button.
+- Existing Yukkit features appear in the new screen through an adapter.
+
+### Notes
+- **Not runtime-tested.** This build was written without access to the Minecraft 26.3 jars, so API names were checked by reading, not compiling. Expect compile or mixin issues on the first CI run.
+- All new mixins live in `yukkit-toolkit.modules.mixins.json`, which is not required: a mixin that fails to apply is skipped instead of stopping the game.
+- Modules use one behaviour each; there are no per-anti-cheat bypass modes. Server crashers, duplication and anti-cheat disablers are intentionally not included.
+- Using movement/combat modules on servers that forbid them can get you banned.
+
 ## 0.1.0-alpha.14 — 2026-11-12
 
 ### Added

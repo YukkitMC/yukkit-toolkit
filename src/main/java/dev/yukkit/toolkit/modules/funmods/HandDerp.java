@@ -7,7 +7,6 @@ import dev.yukkit.toolkit.core.Setting;
 import net.minecraft.network.protocol.common.ServerboundClientInformationPacket;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.entity.player.PlayerModelPart;
 
 /**
  * Flips your main hand over and over as seen by the server (other players see the model
@@ -44,19 +43,17 @@ public final class HandDerp extends Module {
         send(current);
     }
 
+    /** Bit set of the skin layers the player currently has enabled. */
+    private static int skinLayerBits() {
+        return mc.options.getModelParts().stream().mapToInt(part -> 1 << part.ordinal()).reduce(0, (x, y) -> x | y);
+    }
+
+    /** Re-announces the client settings to the server with the given main hand. */
     private void send(HumanoidArm arm) {
-        int mask = 0;
-        for (PlayerModelPart part : mc.options.getModelParts()) mask |= 1 << part.ordinal();
-        ClientInformation info = new ClientInformation(
-                mc.options.languageCode,
-                mc.options.renderDistance().get(),
-                mc.options.chatVisibility().get(),
-                mc.options.chatColors().get(),
-                mask,
-                arm,
-                mc.isTextFilteringEnabled(),
-                mc.options.allowServerListing().get(),
-                mc.options.particles().get());
-        ModuleManager.sendDirect(new ServerboundClientInformationPacket(info));
+        var o = mc.options;
+        ClientInformation announce = new ClientInformation(
+                o.languageCode, o.renderDistance().get(), o.chatVisibility().get(), o.chatColors().get(),
+                skinLayerBits(), arm, mc.isTextFilteringEnabled(), o.allowServerListing().get(), o.particles().get());
+        ModuleManager.sendDirect(new ServerboundClientInformationPacket(announce));
     }
 }

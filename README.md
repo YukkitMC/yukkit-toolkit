@@ -52,6 +52,10 @@ Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game 
 | **Style** | Wave | Simple vanilla arm-swing gesture. Not a custom animated emote. |
 | **World** | World Downloader | Experimental capture of loaded overworld block data into a local Anvil-format world directory. Not a faithful or validated world backup. |
 
+### Module screen (0.2.0-alpha.1)
+
+Press **Right Shift** for the module screen: pick a category tab, left-click a module to toggle it, right-click it to see its settings (left/right click on a setting steps it forward/back, mouse wheel scrolls). 139 modules across Combat, Movement, Player, World, Exploit, Render, Misc and Fun. See [CHANGELOG.md](CHANGELOG.md) for caveats; this release has not been runtime-tested.
+
 ### Controls
 
 - **Right Shift:** open/close the Yukkit Toolkit panel.

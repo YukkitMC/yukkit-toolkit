@@ -44,6 +44,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
 import java.util.function.Predicate;
 
 /** Shared block placing helpers for the world modules. All methods are null-safe. */
@@ -63,7 +67,25 @@ public final class UtilBuild {
     /** Slot id meaning "nothing suitable found". */
     public static final int NONE = -2;
 
+    /** Positions whose last click was refused, so a blocked spot is not spammed every tick. */
+    private static final Map<Long, Long> RECENT_FAILURES = new HashMap<>();
+    private static final long RETRY_MILLIS = 400L;
+
     private UtilBuild() {}
+
+    private static boolean recentlyFailed(BlockPos pos) {
+        Long when = RECENT_FAILURES.get(pos.asLong());
+        return when != null && System.currentTimeMillis() - when < RETRY_MILLIS;
+    }
+
+    private static void noteResult(BlockPos pos, boolean ok) {
+        if (ok) {
+            RECENT_FAILURES.remove(pos.asLong());
+            return;
+        }
+        if (RECENT_FAILURES.size() > 256) RECENT_FAILURES.clear();
+        RECENT_FAILURES.put(pos.asLong(), System.currentTimeMillis());
+    }
 
     // ------------------------------------------------------------ queries
     public static boolean ready() {
@@ -166,7 +188,7 @@ public final class UtilBuild {
      * Returns true when the server was asked to place and the interaction was accepted.
      */
     public static boolean placeAt(BlockPos target, int slot, boolean airPlaceFallback) {
-        if (!ready() || slot == NONE || !isReplaceable(target)) return false;
+        if (!ready() || slot == NONE || !isReplaceable(target) || recentlyFailed(target)) return false;
         Vec3 eye = mc.player.getEyePosition();
         double maxSqr = reach() * reach();
         for (Direction d : SUPPORT_ORDER) {
@@ -174,10 +196,14 @@ public final class UtilBuild {
             if (!isSupport(mc.level.getBlockState(support))) continue;
             Vec3 hit = Vec3.atCenterOf(support).add(Vec3.atCenterOf(target)).scale(0.5);
             if (eye.distanceToSqr(hit) > maxSqr) continue;
-            return click(new BlockHitResult(hit, d.getOpposite(), support.immutable(), false), slot);
+            boolean ok = click(new BlockHitResult(hit, d.getOpposite(), support.immutable(), false), slot);
+            noteResult(target, ok);
+            return ok;
         }
         if (airPlaceFallback && eye.distanceToSqr(Vec3.atCenterOf(target)) <= maxSqr) {
-            return click(new BlockHitResult(Vec3.atCenterOf(target), Direction.UP, target.immutable(), false), slot);
+            boolean ok = click(new BlockHitResult(Vec3.atCenterOf(target), Direction.UP, target.immutable(), false), slot);
+            noteResult(target, ok);
+            return ok;
         }
         return false;
     }
@@ -200,5 +226,44 @@ public final class UtilBuild {
             if (slot >= 0 && slot != previous) inv.setSelectedSlot(previous);
         }
         return ok;
+    }
+
+    // -------------------------------------------------------------- shapes
+    /**
+     * Block positions that wall in a standing entity at {@code feet}, ordered so that every block has an
+     * already placed neighbour to click against: floor, wall rings, then the roof.
+     */
+    public static List<BlockPos> cage(BlockPos feet, boolean floor, int wallHeight, boolean roof) {
+        List<BlockPos> list = new ArrayList<>();
+        if (floor) list.add(feet.below());
+        for (int h = 0; h < wallHeight; h++) {
+            for (Direction d : HORIZONTAL) list.add(feet.above(h).relative(d));
+        }
+        if (roof) {
+            BlockPos top = feet.above(wallHeight);
+            for (Direction d : HORIZONTAL) list.add(top.relative(d));
+            list.add(top);
+        }
+        return list;
+    }
+
+    /**
+     * Places up to {@code limit} blocks from {@code targets}. Positions that are already filled are skipped.
+     * Returns how many placements were accepted.
+     */
+    public static int placeAll(List<BlockPos> targets, int slot, int limit, boolean airPlace) {
+        int placed = 0;
+        for (BlockPos pos : targets) {
+            if (placed >= limit) break;
+            if (!isReplaceable(pos)) continue;
+            if (placeAt(pos, slot, airPlace)) placed++;
+        }
+        return placed;
+    }
+
+    /** True when no target in the list can still take a block. */
+    public static boolean allFilled(List<BlockPos> targets) {
+        for (BlockPos pos : targets) if (isReplaceable(pos)) return false;
+        return true;
     }
 }

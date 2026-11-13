@@ -17,7 +17,12 @@ import dev.yukkit.toolkit.render.StorageVisualExtras;
 import dev.yukkit.toolkit.modules.AutoRespawn;
 import dev.yukkit.toolkit.modules.framework.ModuleRegistry;
 import dev.yukkit.toolkit.modules.framework.BuiltinModules;
+import dev.yukkit.toolkit.core.LegacyModules;
+import dev.yukkit.toolkit.core.ModuleManager;
+import dev.yukkit.toolkit.screen.ModuleScreen;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
@@ -49,6 +54,18 @@ public final class YukkitToolkitClient implements ClientModInitializer {
         ));
 
         BuiltinModules.register();
+        LegacyModules.register();
+        dev.yukkit.toolkit.modules.combat.CombatModules.register();
+        dev.yukkit.toolkit.modules.movement.MovementModules.register();
+        dev.yukkit.toolkit.modules.player.PlayerModules.register();
+        dev.yukkit.toolkit.modules.world.WorldModules.register();
+        dev.yukkit.toolkit.modules.exploit.ExploitModules.register();
+        dev.yukkit.toolkit.modules.render.RenderModules.register();
+        dev.yukkit.toolkit.modules.misc.MiscModules.register();
+        dev.yukkit.toolkit.modules.funmods.FunModules.register();
+        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("yukkit_toolkit", "modules_hud"),
+                (graphics, delta) -> ModuleManager.hud(graphics));
+        LevelRenderEvents.BEFORE_GIZMOS.register(context -> ModuleManager.world());
         ToolkitHud.register();
         StorageVisualExtras.register();
 
@@ -56,8 +73,8 @@ public final class YukkitToolkitClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (menuKey.consumeClick()) {
                 if (client.level != null && client.player != null) {
-                    if (client.gui.screen() instanceof ToolkitScreen) client.gui.setScreen(null);
-                    else client.gui.setScreen(new ToolkitScreen());
+                    if (client.gui.screen() instanceof ToolkitScreen || client.gui.screen() instanceof ModuleScreen) client.gui.setScreen(null);
+                    else client.gui.setScreen(new ModuleScreen(null));
                 }
             }
             while (perspectiveKey.consumeClick()) {
@@ -86,6 +103,7 @@ public final class YukkitToolkitClient implements ClientModInitializer {
             ChestCandidates.tick(client);
             AutoRespawn.tick(client);
             ModuleRegistry.tick(client);
+            ModuleManager.tick(client);
 
         });
         LOGGER.info("Yukkit Toolkit initialized (Minecraft 26.3 / Fabric)");

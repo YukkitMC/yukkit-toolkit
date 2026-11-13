@@ -16,7 +16,8 @@
     "client": ["dev.yukkit.toolkit.YukkitToolkitClient"]
   },
   "mixins": [
-    "yukkit-toolkit.mixins.json"
+    "yukkit-toolkit.mixins.json",
+    "yukkit-toolkit.modules.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.20.1",
