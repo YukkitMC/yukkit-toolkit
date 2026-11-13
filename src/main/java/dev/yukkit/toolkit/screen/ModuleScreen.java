@@ -30,27 +30,27 @@ import java.util.Locale;
  */
 public final class ModuleScreen extends Screen {
     // Palette
-    private static final int OUTLINE = 0xFF111111;
-    private static final int LIGHT_EDGE = 0xFF9A9A9A;
-    private static final int TITLE_BG = 0xFF767676;
-    private static final int SIDE_BG = 0xFF626262;
-    private static final int CONTENT_BG = 0xFF353535;
-    private static final int ROW_BG = 0xFF4A4A4A;
-    private static final int ROW_HOVER = 0xFF595959;
-    private static final int ROW_SELECTED = 0xFF666666;
-    private static final int ICON_BG = 0xFF555555;
-    private static final int ICON_EDGE = 0xFFC4C4C4;
+    private static final int OUTLINE = 0xFF05070B;
+    private static final int LIGHT_EDGE = 0xFF1B3A7A;
+    private static final int TITLE_BG = 0xFF0D1220;
+    private static final int SIDE_BG = 0xFF090C14;
+    private static final int CONTENT_BG = 0xFF0F131D;
+    private static final int ROW_BG = 0xFF171D2B;
+    private static final int ROW_HOVER = 0xFF1F2840;
+    private static final int ROW_SELECTED = 0xFF22335C;
+    private static final int ICON_BG = 0xFF141B2E;
+    private static final int ICON_EDGE = 0xFF3A5A9A;
     private static final int WHITE = 0xFFFFFFFF;
-    private static final int DIM = 0xFFC8C8C8;
-    private static final int FAINT = 0xFF9A9A9A;
-    private static final int CYAN = 0xFF4FD8FF;
-    private static final int GREEN = 0xFF3AA630;
-    private static final int GREEN_EDGE = 0xFF8AF070;
-    private static final int BLUE = 0xFF2B7BDB;
-    private static final int BLUE_EDGE = 0xFF5FB0FF;
+    private static final int DIM = 0xFFAEB8CC;
+    private static final int FAINT = 0xFF6F7B94;
+    private static final int CYAN = 0xFF4A94FF;
+    private static final int GREEN = 0xFF1F6FEB;
+    private static final int GREEN_EDGE = 0xFF6AB0FF;
+    private static final int BLUE = 0xFF18264A;
+    private static final int BLUE_EDGE = 0xFF3F72D9;
     private static final int RED = 0xFFFF5555;
-    private static final int SWITCH_ON = 0xFF4DAC68;
-    private static final int SWITCH_OFF = 0xFF2B2B2B;
+    private static final int SWITCH_ON = 0xFF2E7BFF;
+    private static final int SWITCH_OFF = 0xFF222A3D;
 
     private static final int SIDEBAR_W = 120, TITLE_H = 28, ROW_H = 22, BTN_H = 24;
     private static final int TEAMS_VIEW = Category.values().length;
@@ -115,7 +115,7 @@ public final class ModuleScreen extends Screen {
                 scroll = 0;
             }
         });
-        addRenderableWidget(box);
+        addWidget(box);
         setInitialFocus(box);
     }
 
@@ -266,13 +266,9 @@ public final class ModuleScreen extends Screen {
 
         // ---- window + title bar
         g.fill(x1, y1, x2, y2, SIDE_BG);
-        int tbx1 = box.getX(), tby1 = box.getY(), tbx2 = tbx1 + box.getWidth(), tby2 = tby1 + box.getHeight();
-        g.fill(x1, y1, x2, tby1, TITLE_BG);
-        g.fill(x1, tby2, x2, y1 + TITLE_H, TITLE_BG);
-        g.fill(x1, tby1, tbx1, tby2, TITLE_BG);
-        g.fill(tbx2, tby1, x2, tby2, TITLE_BG);
-        g.fill(x1, y1 + TITLE_H - 1, x2, y1 + TITLE_H, OUTLINE);
-        g.fill(x1 + 1, y1 + 1, x2 - 1, y1 + 2, 0x33FFFFFF);
+        g.fill(x1, y1, x2, y1 + TITLE_H, TITLE_BG);
+        g.fill(x1, y1 + TITLE_H - 2, x2, y1 + TITLE_H, SWITCH_ON);
+        g.fill(x1 + 1, y1 + 1, x2 - 1, y1 + 2, 0x226AB0FF);
         g.text(font, "Yukkit Toolkit", x1 + 10, y1 + 10, WHITE, true);
 
         closeHit = new int[]{x2 - 24, y1 + 5, x2 - 6, y1 + 23};
@@ -297,7 +293,7 @@ public final class ModuleScreen extends Screen {
         }
         int fy = y2 - 60;
         g.text(font, "Status", x1 + 12, fy, WHITE, true);
-        g.text(font, enabledCount() + " active", x1 + 12, fy + 11, enabledCount() > 0 ? 0xFF55FF55 : RED, true);
+        g.text(font, enabledCount() + " active", x1 + 12, fy + 11, enabledCount() > 0 ? CYAN : FAINT, true);
         g.text(font, "Version", x1 + 12, fy + 27, WHITE, true);
         g.text(font, version(), x1 + 12, fy + 38, DIM, true);
         g.text(font, "Fabric", x1 + 12, fy + 49, DIM, true);
@@ -388,6 +384,24 @@ public final class ModuleScreen extends Screen {
         if (maxScroll > 0) {
             String pos = (scroll + 1) + "-" + Math.min(rows.size(), scroll + visible) + " / " + rows.size();
             g.text(font, pos, px2 - 10 - font.width(pos), py1 + 9, FAINT, true);
+        }
+
+        // ---- search / name field (text drawn here; input handled by the EditBox child)
+        {
+            int fx1 = box.getX(), fy1 = box.getY(), fx2 = fx1 + box.getWidth(), fy2 = fy1 + box.getHeight();
+            g.fill(fx1, fy1, fx2, fy2, 0xFF05080F);
+            outline(g, fx1, fy1, fx2, fy2, box.isFocused() ? SWITCH_ON : 0xFF2A3A5E);
+            String val = box.getValue();
+            int tx = fx1 + 5, tyy = fy1 + (fy2 - fy1 - 8) / 2;
+            if (val.isEmpty()) {
+                g.text(font, view == TEAMS_VIEW ? "Player name (offline names allowed)" : "Search all modules...", tx, tyy, FAINT, true);
+            } else {
+                String shown = val;
+                while (shown.length() > 1 && font.width(shown) > fx2 - fx1 - 12) shown = shown.substring(1);
+                g.text(font, shown, tx, tyy, WHITE, true);
+                tx += font.width(shown);
+            }
+            if (box.isFocused() && (System.currentTimeMillis() / 500) % 2 == 0) g.fill(tx + 1, tyy - 1, tx + 2, tyy + 9, WHITE);
         }
 
         // ---- bottom bar
