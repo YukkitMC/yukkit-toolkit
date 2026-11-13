@@ -30,28 +30,29 @@ import java.util.Locale;
  */
 public final class ModuleScreen extends Screen {
     // Palette
-    private static final int OUTLINE = 0xFF1B1B1B;
-    private static final int TITLE_BG = 0xFF7D7D7D;
-    private static final int SIDE_BG = 0xFF696969;
-    private static final int CONTENT_BG = 0xFF3A3A3A;
-    private static final int ROW_BG = 0xFF515151;
-    private static final int ROW_HOVER = 0xFF5F5F5F;
-    private static final int ROW_SELECTED = 0xFF6C6C6C;
+    private static final int OUTLINE = 0xFF111111;
+    private static final int LIGHT_EDGE = 0xFF9A9A9A;
+    private static final int TITLE_BG = 0xFF767676;
+    private static final int SIDE_BG = 0xFF626262;
+    private static final int CONTENT_BG = 0xFF353535;
+    private static final int ROW_BG = 0xFF4A4A4A;
+    private static final int ROW_HOVER = 0xFF595959;
+    private static final int ROW_SELECTED = 0xFF666666;
     private static final int ICON_BG = 0xFF555555;
     private static final int ICON_EDGE = 0xFFC4C4C4;
     private static final int WHITE = 0xFFFFFFFF;
     private static final int DIM = 0xFFC8C8C8;
     private static final int FAINT = 0xFF9A9A9A;
-    private static final int CYAN = 0xFF55D8FF;
-    private static final int GREEN = 0xFF3FA83F;
-    private static final int GREEN_EDGE = 0xFF7BE87B;
-    private static final int BLUE = 0xFF2E7FE8;
-    private static final int BLUE_EDGE = 0xFF7DB8FF;
+    private static final int CYAN = 0xFF4FD8FF;
+    private static final int GREEN = 0xFF3AA630;
+    private static final int GREEN_EDGE = 0xFF8AF070;
+    private static final int BLUE = 0xFF2B7BDB;
+    private static final int BLUE_EDGE = 0xFF5FB0FF;
     private static final int RED = 0xFFFF5555;
     private static final int SWITCH_ON = 0xFF4DAC68;
     private static final int SWITCH_OFF = 0xFF2B2B2B;
 
-    private static final int SIDEBAR_W = 100, TITLE_H = 22, ROW_H = 18, BTN_H = 20;
+    private static final int SIDEBAR_W = 120, TITLE_H = 28, ROW_H = 22, BTN_H = 24;
     private static final int TEAMS_VIEW = Category.values().length;
     private static final int MAX_TEAM = 64;
 
@@ -96,13 +97,13 @@ public final class ModuleScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        w = Math.min(width - 16, 430);
-        h = Math.min(height - 16, 270);
+        w = Math.min(width - 20, Math.max(420, (int) (width * 0.86)));
+        h = Math.min(height - 20, Math.max(250, (int) (height * 0.88)));
         x0 = (width - w) / 2;
         y0 = (height - h) / 2;
 
         boolean teams = view == TEAMS_VIEW;
-        box = new EditBox(font, contentX() + 8, y0 + TITLE_H + 22, contentW() - 16, 16,
+        box = new EditBox(font, contentX() + 8, y0 + 6, contentW() - 8 - 56, 16,
                 Component.literal(teams ? "Player name" : "Search modules"));
         box.setMaxLength(32);
         box.setHint(Component.literal(teams ? "Player name (offline names allowed)" : "Search all modules..."));
@@ -120,8 +121,8 @@ public final class ModuleScreen extends Screen {
 
     private int contentX() { return x0 + SIDEBAR_W; }
     private int contentW() { return w - SIDEBAR_W; }
-    private int listTop() { return y0 + TITLE_H + 44; }
-    private int bottomBarY() { return y0 + h - 28; }
+    private int listTop() { return y0 + TITLE_H + 26; }
+    private int bottomBarY() { return y0 + h - 34; }
     private int visibleRows() { return Math.max(1, (bottomBarY() - 4 - listTop()) / ROW_H); }
 
     @Override
@@ -218,7 +219,11 @@ public final class ModuleScreen extends Screen {
     private void button(GuiGraphicsExtractor g, int[] r, String label, int fill, int edge, boolean enabled) {
         g.fill(r[0], r[1], r[2], r[3], enabled ? fill : 0xFF4A4A4A);
         outline(g, r[0], r[1], r[2], r[3], enabled ? edge : 0xFF6A6A6A);
-        g.text(font, label, r[0] + (r[2] - r[0] - font.width(label)) / 2, r[1] + 6, enabled ? WHITE : FAINT, true);
+        if (enabled) {
+            g.fill(r[0] + 1, r[1] + 1, r[2] - 1, r[1] + 2, 0x55FFFFFF);
+            g.fill(r[0] + 1, r[3] - 2, r[2] - 1, r[3] - 1, 0x44000000);
+        }
+        g.text(font, label, r[0] + (r[2] - r[0] - font.width(label)) / 2, r[1] + (r[3] - r[1] - 8) / 2, enabled ? WHITE : FAINT, true);
     }
 
     private void drawSwitch(GuiGraphicsExtractor g, int x, int y, boolean on) {
@@ -261,12 +266,17 @@ public final class ModuleScreen extends Screen {
 
         // ---- window + title bar
         g.fill(x1, y1, x2, y2, SIDE_BG);
-        g.fill(x1, y1, x2, y1 + TITLE_H, TITLE_BG);
+        int tbx1 = box.getX(), tby1 = box.getY(), tbx2 = tbx1 + box.getWidth(), tby2 = tby1 + box.getHeight();
+        g.fill(x1, y1, x2, tby1, TITLE_BG);
+        g.fill(x1, tby2, x2, y1 + TITLE_H, TITLE_BG);
+        g.fill(x1, tby1, tbx1, tby2, TITLE_BG);
+        g.fill(tbx2, tby1, x2, tby2, TITLE_BG);
         g.fill(x1, y1 + TITLE_H - 1, x2, y1 + TITLE_H, OUTLINE);
-        g.text(font, "Yukkit Toolkit", x1 + 8, y1 + 7, WHITE, true);
+        g.fill(x1 + 1, y1 + 1, x2 - 1, y1 + 2, 0x33FFFFFF);
+        g.text(font, "Yukkit Toolkit", x1 + 10, y1 + 10, WHITE, true);
 
-        closeHit = new int[]{x2 - 22, y1 + 2, x2 - 4, y1 + 20};
-        classicHit = new int[]{x2 - 44, y1 + 2, x2 - 26, y1 + 20};
+        closeHit = new int[]{x2 - 24, y1 + 5, x2 - 6, y1 + 23};
+        classicHit = new int[]{x2 - 48, y1 + 5, x2 - 30, y1 + 23};
         for (int[] r : new int[][]{closeHit, classicHit}) {
             g.fill(r[0], r[1], r[2], r[3], ICON_BG);
             outline(g, r[0], r[1], r[2], r[3], inside(r, mx, my) ? WHITE : ICON_EDGE);
@@ -276,29 +286,29 @@ public final class ModuleScreen extends Screen {
 
         // ---- sidebar
         Category[] cats = Category.values();
-        int ty = y1 + TITLE_H + 10;
+        int ty = y1 + TITLE_H + 14;
         for (int i = 0; i <= cats.length; i++) {
             String label = i == TEAMS_VIEW ? "Teams" : cats[i].label;
             boolean active = i == view && search.isBlank();
-            boolean hover = mx >= x1 + 4 && mx < cx - 4 && my >= ty - 3 && my < ty + 11;
+            boolean hover = mx >= x1 + 4 && mx < cx - 4 && my >= ty - 4 && my < ty + 12;
             g.text(font, label, x1 + 12, ty, active ? CYAN : hover ? WHITE : DIM, true);
-            tabHits.add(new int[]{x1 + 4, ty - 3, cx - 4, ty + 11});
-            ty += 15;
+            tabHits.add(new int[]{x1 + 4, ty - 4, cx - 4, ty + 12});
+            ty += 18;
         }
-        int fy = y2 - 52;
-        g.text(font, "Active", x1 + 12, fy, WHITE, true);
-        g.text(font, enabledCount() + " / " + ModuleManager.all().size(), x1 + 12, fy + 10, SWITCH_ON, true);
-        g.text(font, "Version", x1 + 12, fy + 24, WHITE, true);
-        g.text(font, version() + " Fabric", x1 + 12, fy + 34, DIM, true);
+        int fy = y2 - 60;
+        g.text(font, "Status", x1 + 12, fy, WHITE, true);
+        g.text(font, enabledCount() + " active", x1 + 12, fy + 11, enabledCount() > 0 ? 0xFF55FF55 : RED, true);
+        g.text(font, "Version", x1 + 12, fy + 27, WHITE, true);
+        g.text(font, version(), x1 + 12, fy + 38, DIM, true);
+        g.text(font, "Fabric", x1 + 12, fy + 49, DIM, true);
 
         // ---- content pane (leaves a hole for the search box)
         int px1 = cx, py1 = y1 + TITLE_H, px2 = x2, py2 = y2;
-        int bx1 = box.getX(), by1 = box.getY(), bx2 = bx1 + box.getWidth(), by2 = by1 + box.getHeight();
-        g.fill(px1, py1, px2, by1, CONTENT_BG);
-        g.fill(px1, by2, px2, py2, CONTENT_BG);
-        g.fill(px1, by1, bx1, by2, CONTENT_BG);
-        g.fill(bx2, by1, px2, by2, CONTENT_BG);
+        g.fill(px1, py1, px2, py2, CONTENT_BG);
         g.fill(px1, py1, px1 + 1, py2, OUTLINE);
+        g.fill(px1 + 1, py1, px2, py1 + 2, 0x55000000);
+        outline(g, x1, y1, x2, y2, OUTLINE);
+        outline(g, x1 + 1, y1 + 1, x2 - 1, y2 - 1, LIGHT_EDGE);
         outline(g, x1, y1, x2, y2, OUTLINE);
 
         // ---- header with trailing line
@@ -309,15 +319,15 @@ public final class ModuleScreen extends Screen {
         else title = cats[view].label;
         int count = view == TEAMS_VIEW ? 0 : (int) rows.stream().filter(r -> r.kind == Kind.MODULE).count();
         String head = view == TEAMS_VIEW ? title : title + " [" + count + "]";
-        g.text(font, head, cx + 8, py1 + 8, WHITE, true);
-        g.fill(cx + 12 + font.width(head), py1 + 12, px2 - 8, py1 + 13, DIM);
+        g.text(font, head, cx + 10, py1 + 9, WHITE, true);
+        g.fill(cx + 16 + font.width(head), py1 + 13, px2 - 10, py1 + 14, 0xFFE0E0E0);
 
         // ---- rows
         int visible = visibleRows();
         int maxScroll = Math.max(0, rows.size() - visible);
         scroll = Math.max(0, Math.min(maxScroll, scroll));
         int y = listTop();
-        int rx1 = cx + 8, rx2 = px2 - 8;
+        int rx1 = cx + 10, rx2 = px2 - 10;
         for (int i = scroll; i < rows.size() && i < scroll + visible; i++) {
             Row r = rows.get(i);
             int[] hit = {rx1, y, rx2, y + ROW_H - 2};
@@ -326,24 +336,26 @@ public final class ModuleScreen extends Screen {
                 case MODULE -> {
                     Module m = r.module;
                     g.fill(hit[0], hit[1], hit[2], hit[3], m == selected ? ROW_SELECTED : hover ? ROW_HOVER : ROW_BG);
-                    g.text(font, m.name, hit[0] + 6, hit[1] + 5, m.isEnabled() ? WHITE : DIM, true);
+                    g.fill(hit[0] + 4, hit[1] + 4, hit[0] + 14, hit[1] + 14, m.isEnabled() ? SWITCH_ON : 0xFF2B2B2B);
+                    outline(g, hit[0] + 4, hit[1] + 4, hit[0] + 14, hit[1] + 14, OUTLINE);
+                    g.text(font, m.name, hit[0] + 20, hit[1] + 6, m.isEnabled() ? WHITE : DIM, true);
                     String extra = !search.isBlank() ? m.category.label : m.tag();
-                    if (!extra.isEmpty()) g.text(font, extra, hit[0] + 12 + font.width(m.name), hit[1] + 5, FAINT, true);
-                    drawSwitch(g, hit[2] - 28, hit[1] + 4, m.isEnabled());
+                    if (!extra.isEmpty()) g.text(font, extra, hit[0] + 26 + font.width(m.name), hit[1] + 6, FAINT, true);
+                    drawSwitch(g, hit[2] - 30, hit[1] + 4, m.isEnabled());
                 }
                 case SETTING -> {
                     g.fill(hit[0] + 10, hit[1], hit[2], hit[3], hover ? ROW_HOVER : 0xFF464646);
-                    g.text(font, r.setting.name, hit[0] + 16, hit[1] + 5, DIM, true);
-                    if (r.setting instanceof Setting.Bool b) drawSwitch(g, hit[2] - 28, hit[1] + 4, b.get());
+                    g.text(font, r.setting.name, hit[0] + 16, hit[1] + 6, DIM, true);
+                    if (r.setting instanceof Setting.Bool b) drawSwitch(g, hit[2] - 30, hit[1] + 5, b.get());
                     else {
                         String v = r.setting.display();
-                        g.text(font, v, hit[2] - 6 - font.width(v), hit[1] + 5, CYAN, true);
+                        g.text(font, v, hit[2] - 6 - font.width(v), hit[1] + 6, CYAN, true);
                     }
                 }
-                case LABEL -> g.text(font, r.text, hit[0] + 2, hit[1] + 5, DIM, true);
+                case LABEL -> g.text(font, r.text, hit[0] + 2, hit[1] + 6, DIM, true);
                 case SWATCHES -> {
                     g.fill(hit[0], hit[1], hit[2], hit[3], ROW_BG);
-                    g.text(font, r.text, hit[0] + 6, hit[1] + 5, WHITE, true);
+                    g.text(font, r.text, hit[0] + 6, hit[1] + 6, WHITE, true);
                     int sx = hit[2] - 8 * 14 - 2;
                     for (int c = 0; c < TeamEspColor.VALUES.length; c++) {
                         int[] s = {sx + c * 14, hit[1] + 3, sx + c * 14 + 12, hit[1] + 15};
@@ -355,18 +367,18 @@ public final class ModuleScreen extends Screen {
                 }
                 case TEAM_TOGGLE -> {
                     g.fill(hit[0], hit[1], hit[2], hit[3], hover ? ROW_HOVER : ROW_BG);
-                    g.text(font, r.text, hit[0] + 6, hit[1] + 5, WHITE, true);
-                    drawSwitch(g, hit[2] - 28, hit[1] + 4, ToolkitConfig.INSTANCE.teamGlow);
+                    g.text(font, r.text, hit[0] + 6, hit[1] + 6, WHITE, true);
+                    drawSwitch(g, hit[2] - 30, hit[1] + 5, ToolkitConfig.INSTANCE.teamGlow);
                 }
                 case MEMBER -> {
                     g.fill(hit[0], hit[1], hit[2], hit[3], hover ? ROW_HOVER : ROW_BG);
-                    g.text(font, r.text, hit[0] + 6, hit[1] + 5, WHITE, true);
-                    g.text(font, "Remove", hit[2] - 6 - font.width("Remove"), hit[1] + 5, RED, true);
+                    g.text(font, r.text, hit[0] + 6, hit[1] + 6, WHITE, true);
+                    g.text(font, "Remove", hit[2] - 6 - font.width("Remove"), hit[1] + 6, RED, true);
                 }
                 case NEARBY -> {
                     g.fill(hit[0], hit[1], hit[2], hit[3], hover ? ROW_HOVER : ROW_BG);
-                    g.text(font, r.text, hit[0] + 6, hit[1] + 5, DIM, true);
-                    g.text(font, "Add", hit[2] - 6 - font.width("Add"), hit[1] + 5, SWITCH_ON, true);
+                    g.text(font, r.text, hit[0] + 6, hit[1] + 6, DIM, true);
+                    g.text(font, "Add", hit[2] - 6 - font.width("Add"), hit[1] + 6, SWITCH_ON, true);
                 }
             }
             rowHits.add(hit);
@@ -375,14 +387,14 @@ public final class ModuleScreen extends Screen {
         }
         if (maxScroll > 0) {
             String pos = (scroll + 1) + "-" + Math.min(rows.size(), scroll + visible) + " / " + rows.size();
-            g.text(font, pos, px2 - 8 - font.width(pos), py1 + 8, FAINT, true);
+            g.text(font, pos, px2 - 10 - font.width(pos), py1 + 9, FAINT, true);
         }
 
         // ---- bottom bar
         int by = bottomBarY();
-        int bw = Math.min(110, (contentW() - 28) / 2);
-        greenHit = new int[]{px2 - 8 - bw * 2 - 6, by + 4, px2 - 8 - bw - 6, by + 4 + BTN_H};
-        blueHit = new int[]{px2 - 8 - bw, by + 4, px2 - 8, by + 4 + BTN_H};
+        int bw = Math.min(150, (contentW() - 30) / 2);
+        greenHit = new int[]{px2 - 10 - bw * 2 - 8, by + 4, px2 - 10 - bw - 8, by + 4 + BTN_H};
+        blueHit = new int[]{px2 - 10 - bw, by + 4, px2 - 10, by + 4 + BTN_H};
         if (view == TEAMS_VIEW) {
             button(g, greenHit, "Add", GREEN, GREEN_EDGE, true);
             button(g, blueHit, "Clear All", BLUE, BLUE_EDGE, true);
@@ -394,7 +406,7 @@ public final class ModuleScreen extends Screen {
         String hint = !feedback.isEmpty() ? feedback
                 : view == TEAMS_VIEW ? "Click a nearby player to add; click a member to remove."
                 : "Left: toggle   Right: settings   Wheel: scroll   RShift: close";
-        g.text(font, hint, cx + 8, by + 10, !feedback.isEmpty() ? 0xFFFFAA55 : FAINT, true);
+        g.text(font, hint, cx + 10, by + 10, !feedback.isEmpty() ? 0xFFFFAA55 : FAINT, true);
     }
 
     // ----------------------------------------------------------------- input

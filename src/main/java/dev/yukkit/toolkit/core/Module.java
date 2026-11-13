@@ -63,7 +63,7 @@ public abstract class Module {
         ModuleManager.save();
     }
 
-    public void toggle() { setEnabled(!enabled); }
+    public void toggle() { setEnabled(!isEnabled()); }
 
     /** Restores the persisted state without firing hooks twice. */
     void restore(boolean value) {
