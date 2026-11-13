@@ -138,7 +138,7 @@ public final class ToolkitScreen extends Screen {
                 dev.yukkit.toolkit.modules.XrayController.toggle(Minecraft.getInstance());
                 rebuildWidgets();
             });
-            nativeButton(left, top + 75, pairWidth, "Chest ESP: " + label(config.chestXray), () -> {
+            nativeButton(left, top + 75, pairWidth, "Chest Model: " + label(config.chestXray), () -> {
                 XrayController.toggleChest(Minecraft.getInstance());
                 rebuildWidgets();
             });

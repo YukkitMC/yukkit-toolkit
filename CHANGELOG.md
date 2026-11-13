@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.1.0-alpha.11 — 2026-11-12
+
+### New: True-textured Chest ESP
+- Replaces the translucent blue box overlay with a second submission of Minecraft's original textured `ChestModel`.
+- Uses the real chest sprite, facing, double-chest half selection and interpolated lid animation from the vanilla chest renderer.
+- Draws the model through blocks with a depth-independent `RenderType`, leaving terrain visible and unchanged.
+- Caches client-loaded chest positions once per 20 ticks (maximum 96 within approximately 64 blocks).
+- Extracts otherwise-culled nearby chest render states to improve through-wall visibility, without loading new chunks.
+- Removes the previous `Gizmos.cuboid` overlay completely; the previous nested render-pass crash path remains removed.
+
+### Caveats
+- Applies to Minecraft's block-entity chests, trapped chests, Ender chests and other variants that share `ChestRenderer`. Barrels are ordinary block models and are not rendered through walls by this path.
+- Uses Minecraft's model/texture rendering APIs, not a separate GPU render pass.
+- The build compiles with Minecraft 26.3, but runtime compatibility with Iris/Sodium is **not yet verified**.
+- Only containers already sent to the client can be shown.
+
+
+
 ## 0.1.0-alpha.10 — 2026-11-12
 
 ### Fixed
