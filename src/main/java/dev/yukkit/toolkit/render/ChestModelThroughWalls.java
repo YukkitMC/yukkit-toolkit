@@ -1,6 +1,5 @@
 package dev.yukkit.toolkit.render;
 
-import com.mojang.renderpearl.api.pipeline.BlendFunction;
 import com.mojang.renderpearl.api.pipeline.ColorTargetState;
 import com.mojang.renderpearl.api.pipeline.CompareOp;
 import com.mojang.renderpearl.api.pipeline.DepthStencilState;
@@ -18,7 +17,7 @@ import java.util.Map;
 
 /**
  * Re-submit Minecraft's own ChestModel with the original chest atlas texture
- * and a depth-independent pipeline. All actual drawing is performed by the
+ * in the solid model phase with an always-pass depth test. All actual drawing is performed by the
  * normal SubmitNodeCollector, never by a nested GPU render pass.
  *
  * Uses the same vertex/shader layout as Minecraft's standard entity model.
@@ -46,7 +45,9 @@ public final class ChestModelThroughWalls {
                         .withShaderDefine("ALPHA_CUTOUT", 0.1f)
                         .withShaderDefine("PER_FACE_LIGHTING")
                         .withBindGroupLayout(BindGroupLayouts.SAMPLER1)
-                        .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+                        // Avoid OIT/translucent composition, which can occlude this model
+                        // behind terrain in some Iris/Sodium pipelines.
+                        .withColorTargetState(ColorTargetState.DEFAULT)
                         .withCull(false)
                         .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
                         .build());
@@ -54,10 +55,11 @@ public final class ChestModelThroughWalls {
 
             RenderSetup setup = RenderSetup.builder(pipeline)
                     .withTexture("Sampler0", atlas)
+                    .withForcedSolidModelPhase()
                     .useLightmap()
                     .useOverlay()
                     .createRenderSetup();
-            RenderType result = RenderType.create("yukkit_textured_chest_esp", setup);
+            RenderType result = RenderType.create("yukkit_textured_chest_esp_opaque", setup);
             TYPES.put(atlas, result);
             return result;
         } catch (Exception | LinkageError ex) {
