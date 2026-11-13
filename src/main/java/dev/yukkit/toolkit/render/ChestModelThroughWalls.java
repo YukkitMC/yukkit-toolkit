@@ -1,8 +1,6 @@
 package dev.yukkit.toolkit.render;
 
 import com.mojang.renderpearl.api.pipeline.ColorTargetState;
-import com.mojang.renderpearl.api.pipeline.CompareOp;
-import com.mojang.renderpearl.api.pipeline.DepthStencilState;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import dev.yukkit.toolkit.YukkitToolkitClient;
 import net.minecraft.client.renderer.BindGroupLayouts;
@@ -13,11 +11,12 @@ import net.minecraft.resources.Identifier;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Map;
 
 /**
  * Re-submit Minecraft's own ChestModel with the original chest atlas texture
- * in the solid model phase with an always-pass depth test. All actual drawing is performed by the
+ * in the solid model phase without any depth/stencil attachment. All actual drawing is performed by the
  * normal SubmitNodeCollector, never by a nested GPU render pass.
  *
  * Uses the same vertex/shader layout as Minecraft's standard entity model.
@@ -41,7 +40,7 @@ public final class ChestModelThroughWalls {
                 field.setAccessible(true);
                 RenderPipeline.Snippet snippet = (RenderPipeline.Snippet) field.get(null);
                 pipeline = RenderPipelines.register(RenderPipeline.builder(snippet)
-                        .withLocation(Identifier.fromNamespaceAndPath("yukkit_toolkit", "pipeline/textured_chest_esp"))
+                        .withLocation(Identifier.fromNamespaceAndPath("yukkit_toolkit", "pipeline/textured_chest_esp_depthless"))
                         .withShaderDefine("ALPHA_CUTOUT", 0.1f)
                         .withShaderDefine("PER_FACE_LIGHTING")
                         .withBindGroupLayout(BindGroupLayouts.SAMPLER1)
@@ -49,7 +48,9 @@ public final class ChestModelThroughWalls {
                         // behind terrain in some Iris/Sodium pipelines.
                         .withColorTargetState(ColorTargetState.DEFAULT)
                         .withCull(false)
-                        .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
+                        // Disable depth/stencil completely: unlike an ALWAYS_PASS test,
+                        // this cannot inherit a shader or Iris depth attachment policy.
+                        .withDepthStencilState(Optional.empty())
                         .build());
             }
 
@@ -59,7 +60,7 @@ public final class ChestModelThroughWalls {
                     .useLightmap()
                     .useOverlay()
                     .createRenderSetup();
-            RenderType result = RenderType.create("yukkit_textured_chest_esp_opaque", setup);
+            RenderType result = RenderType.create("yukkit_textured_chest_esp_depthless", setup);
             TYPES.put(atlas, result);
             return result;
         } catch (Exception | LinkageError ex) {
