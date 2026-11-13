@@ -33,7 +33,7 @@ public abstract class TexturedChestMixin {
     @Shadow @Final private MultiblockChestResources<ChestModel> models;
     @Shadow @Final private SpriteGetter sprites;
 
-    @Inject(method = "submit", at = @At("TAIL"))
+    @Inject(method = "submit(Lnet/minecraft/client/renderer/blockentity/state/ChestRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V", at = @At("TAIL"))
     private void yukkit$submitThroughWalls(ChestRenderState state, PoseStack poseStack,
                                           SubmitNodeCollector collector, CameraRenderState camera,
                                           CallbackInfo ci) {
