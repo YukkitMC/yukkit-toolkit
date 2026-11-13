@@ -1,24 +1,14 @@
-# Yukkit Toolkit v0.1.0-alpha.14
+# Yukkit Toolkit v0.2.0-alpha.2 · Minecraft 26.3
 
-**Minecraft Java 26.3 · Fabric · Java 25**
+**Alpha build, not fully tested in-game.** Back up your worlds and test in a separate instance.
 
-## Freecam shortcut: X
+## What's new
+- 139 modules across Combat, Movement, Player, World, Exploit, Render, Misc and Fun (written from scratch).
+- New **Right Shift** window: category tabs, search across all modules, per-module settings, and a **Teams** tab (add by name, add nearby players, remove, glow toggle, team colour).
+- **PlayerESP** module; teammates use your team colour.
+- **Download World** button under the disconnect button in the pause menu.
+- Fix: startup crash caused by the mixin config owning the entrypoint package.
 
-- Press **X** in-game to **enable Freecam**.
-- Press **X again** to disable it.
-- The shortcut only works while you're in a world with no menu open.
-- You can rebind the key in Minecraft's Controls screen.
-- **RSHIFT** still opens Yukkit Tools, and **V** still toggles Perspective.
-
-## Regular GitHub Release
-This version is published as an **ordinary Release**, not a GitHub pre-release. The JAR is attached directly to this page and does not need to be extracted from a workflow artifact ZIP.
-
-**Important:** The tag remains an alpha version because the project still has experimental modules, especially the textured Chest ESP with Iris/Sodium. GitHub's release badge reflects the distribution choice, **not** comprehensive in-game testing.
-
-## Installation
-1. Use Minecraft **26.3** with compatible Fabric Loader, Fabric API, and Java 25.
-2. Remove `yukkit-toolkit-0.1.0-alpha.13.jar` and any older Yukkit Toolkit JAR from your Modrinth profile's `mods` directory.
-3. Place `yukkit-toolkit-0.1.0-alpha.14.jar` directly into `mods`.
-4. Start the game and press **X** to toggle Freecam.
-
-GitHub: https://github.com/YukkitMC/yukkit-toolkit
+## Notes
+- Mixins live in `yukkit-toolkit.modules.mixins.json` (not required): a mixin that does not apply is skipped and logged, and its module then has no effect.
+- Using combat/movement modules on servers that forbid them can get you banned.

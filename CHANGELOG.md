@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0-alpha.2 — 2026-11-13
+
+### Added
+- Window-style module screen (Right Shift) with search and a Teams tab.
+- PlayerESP module with team colours.
+- Download World button in the pause menu.
+
+### Fixed
+- Startup crash: the optional mixin config no longer claims the whole `dev.yukkit.toolkit` package.
+
 ## 0.2.0-alpha.1 — 2026-11-13
 
 ### Added
