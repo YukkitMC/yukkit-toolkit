@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0-alpha.3 — 2026-11-13
+
+### Changed
+- Module window restyled after the reference and enlarged; search moved to the title bar.
+
+### Fixed
+- Legacy feature toggles could not be disabled from the new screen.
+
 ## 0.2.0-alpha.2 — 2026-11-13
 
 ### Added

@@ -1,8 +1,10 @@
-# Yukkit Toolkit v0.2.0-alpha.2 · Minecraft 26.3
+# Yukkit Toolkit v0.2.0-alpha.3 · Minecraft 26.3
 
 **Alpha build, not fully tested in-game.** Back up your worlds and test in a separate instance.
 
 ## What's new
+- Module window restyled to match the reference layout and enlarged; search box is now in the title bar.
+- Fix: legacy toggles (Keystrokes, Fullbright, Auto Eat...) could be enabled but not disabled from the new screen.
 - 139 modules across Combat, Movement, Player, World, Exploit, Render, Misc and Fun (written from scratch).
 - New **Right Shift** window: category tabs, search across all modules, per-module settings, and a **Teams** tab (add by name, add nearby players, remove, glow toggle, team colour).
 - **PlayerESP** module; teammates use your team colour.
