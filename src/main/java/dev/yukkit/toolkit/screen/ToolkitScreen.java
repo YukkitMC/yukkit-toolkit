@@ -10,7 +10,7 @@ import dev.yukkit.toolkit.map.ToolkitMap;
 import dev.yukkit.toolkit.performance.PerformanceController;
 import dev.yukkit.toolkit.modules.XrayController;
 import dev.yukkit.toolkit.render.ChestCandidates;
-import dev.yukkit.toolkit.team.TeamEspColor;
+import dev.yukkit.toolkit.team.TeamEspColor;\nimport dev.yukkit.toolkit.modules.framework.Module;\nimport dev.yukkit.toolkit.modules.framework.ModuleRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -31,14 +31,14 @@ import java.util.Locale;
  * only custom-rendered section; there are no hand-drawn panels or button skins.
  */
 public final class ToolkitScreen extends Screen {
-    public enum Page { HOME, VISUAL, CAMERA, MODS, STORAGE, AUTOMATION, TEAM, TEAM_COLOR, STYLE, WORLD, MAP }
+    public enum Page { HOME, VISUAL, CAMERA, MODS, STORAGE, AUTOMATION, TEAM, TEAM_COLOR, STYLE, WORLD, MAP, MODULES }
 
     private final Screen parent;
     private final Page page;
     private EditBox nameBox;
     private EditBox customColorBox;
     private String feedback = "";
-    private int teamPage = 0;
+    private int teamPage = 0;\n    private int modulePage = 0;
 
     public ToolkitScreen() {
         this(null, Page.HOME);
@@ -66,7 +66,7 @@ public final class ToolkitScreen extends Screen {
             case TEAM_COLOR -> "Team Color";
             case STYLE -> "Style";
             case WORLD -> "World";
-            case MAP -> "Map";
+            case MAP -> "Map";\n            case MODULES -> "Modules";
         };
     }
 
@@ -87,8 +87,8 @@ public final class ToolkitScreen extends Screen {
             nativeButton(left, top + 50, pairWidth, "Cosmetics", () -> open(Page.STYLE));
             nativeButton(right, top + 50, pairWidth, "World", () -> open(Page.WORLD));
             nativeButton(left, top + 75, pairWidth, "Map", () -> open(Page.MAP));
-            nativeButton(right, top + 75, pairWidth, "Automation", () -> open(Page.AUTOMATION));
-        } else if (page == Page.VISUAL) {
+            nativeButton(right, top + 75, pairWidth, "Automation", () -> open(Page.AUTOMATION));\n            nativeButton(left, top + 100, 308, "Module Catalogue  →", () -> open(Page.MODULES));
+        } else if (page == Page.MODULES) {\n            List<Module> modules = List.copyOf(ModuleRegistry.all());\n            int pageSize = 8;\n            int start = modulePage * pageSize;\n            int end = Math.min(modules.size(), start + pageSize);\n            for (int i = start; i < end; i++) {\n                Module module = modules.get(i);\n                int row = i - start;\n                nativeButton(row % 2 == 0 ? left : right, top + (row / 2) * 25, pairWidth,\n                        module.name() + ": " + label(module.isEnabled()), () -> { module.toggle(); rebuildWidgets(); });\n            }\n            nativeButton(left, top + 106, pairWidth, "Previous", () -> { modulePage = Math.max(0, modulePage - 1); rebuildWidgets(); });\n            nativeButton(right, top + 106, pairWidth, "Next", () -> { modulePage = Math.min(Math.max(0, (modules.size() - 1) / pageSize), modulePage + 1); rebuildWidgets(); });\n        } else if (page == Page.VISUAL) {
             nativeButton(left, top, pairWidth, "Time: " + config.timeLabel(), () -> {
                 config.localTime = (config.localTime + 1) % 5;
                 change();
