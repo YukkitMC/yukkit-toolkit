@@ -34,6 +34,18 @@ public final class ToolkitConfig {
     public volatile boolean xray = false;
     /** Only previously received chest blocks can be rendered. */
     public volatile boolean chestXray = false;
+    /** StorageESP: user choices, all based on client-loaded block entities. */
+    public boolean storageChest = true;
+    public boolean storageTrapped = true;
+    public boolean storageEnder = true;
+    public boolean storageShulkers = false;
+    public boolean storageHoppers = false;
+    public boolean storageTracers = false;
+    public int storageTracerColor = 0x006EFE;
+    /** Requested scan radius, never more than 32 loaded chunks in each direction. */
+    public int storageRangeChunks = 32;
+    public boolean itemEsp = false;
+    public boolean autoRespawn = false;
     public boolean autoClicker = false;
     public int clickCps = 6;
     public boolean autoMiner = false;
@@ -59,6 +71,8 @@ public final class ToolkitConfig {
                     loaded.teamGlowColor &= 0xFFFFFF;
                     loaded.clickCps = Math.max(2, Math.min(12, loaded.clickCps));
                     loaded.eatThreshold = Math.max(6, Math.min(18, loaded.eatThreshold));
+                    loaded.storageRangeChunks = sanitizeStorageRange(loaded.storageRangeChunks);
+                    loaded.storageTracerColor &= 0xFFFFFF;
                     if (loaded.teamMates == null) loaded.teamMates = new ArrayList<>();
                     return loaded;
                 }
@@ -76,6 +90,13 @@ public final class ToolkitConfig {
         } catch (Exception e) {
             YukkitToolkitClient.LOGGER.warn("Could not save Yukkit Toolkit settings", e);
         }
+    }
+
+    public static int sanitizeStorageRange(int range) {
+        return switch (range) {
+            case 4, 8, 16, 32 -> range;
+            default -> 32;
+        };
     }
 
     public static int sanitizeTeamRange(int range) {

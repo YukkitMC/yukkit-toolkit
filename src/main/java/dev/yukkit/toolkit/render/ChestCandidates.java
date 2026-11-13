@@ -1,9 +1,11 @@
 package dev.yukkit.toolkit.render;
 
 import dev.yukkit.toolkit.ToolkitConfig;
-import dev.yukkit.toolkit.modules.XrayController;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 
@@ -14,103 +16,124 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Incremental scan of locally received chunks for real chest block entities.
- *
- * The radius is the normal vanilla maximum of 32 chunks in every horizontal
- * direction. A server may send fewer chunks, and no missing chunk is loaded
- * or requested. Scanning is spread across ticks to avoid client freezes.
+ * Incrementally scans only client-loaded chunks for selected block entities.
+ * This is a local storage visualizer, never a remote chunk or loot query.
  */
 public final class ChestCandidates {
     public static final int MAX_CHUNK_RADIUS = 32;
-    private static final int BLOCK_MARGIN = 16;
+    public static final int MAX_RENDER_STATES_PER_FRAME = 192;
     private static final int SCAN_CHUNKS_PER_TICK = 64;
     private static final int MAX_CHESTS = 1024;
+    private static final int MAX_EXTRAS = 256;
     private static final List<Offset> OFFSETS = offsets();
 
-    private static Object currentLevel;
-    private static int centerChunkX;
-    private static int centerChunkZ;
-    private static int nextChunk;
+    public record Extra(BlockPos pos, boolean shulker) {}
+    private record Offset(int x, int z) {
+        int distSq() { return x*x + z*z; }
+    }
+
+    private static Object levelMarker;
+    private static int centerChunkX, centerChunkZ, nextChunk;
     private static List<BlockPos> pending = new ArrayList<>();
     private static Set<BlockPos> pendingSet = new HashSet<>();
+    private static List<Extra> pendingExtras = new ArrayList<>();
     private static volatile List<BlockPos> positions = List.of();
-
-    private record Offset(int x, int z) {
-        int distanceSquared() { return x * x + z * z; }
-    }
+    private static volatile List<Extra> extras = List.of();
+    private static volatile int lastForcedExtracted;
 
     private ChestCandidates() {}
 
     private static List<Offset> offsets() {
-        List<Offset> result = new ArrayList<>();
-        for (int dz = -MAX_CHUNK_RADIUS; dz <= MAX_CHUNK_RADIUS; dz++) {
-            for (int dx = -MAX_CHUNK_RADIUS; dx <= MAX_CHUNK_RADIUS; dx++) {
-                result.add(new Offset(dx, dz));
+        List<Offset> offsets = new ArrayList<>();
+        for (int z=-MAX_CHUNK_RADIUS; z<=MAX_CHUNK_RADIUS; z++) {
+            for (int x=-MAX_CHUNK_RADIUS; x<=MAX_CHUNK_RADIUS; x++) {
+                offsets.add(new Offset(x,z));
             }
         }
-        result.sort(Comparator.comparingInt(Offset::distanceSquared));
-        return List.copyOf(result);
+        offsets.sort(Comparator.comparingInt(Offset::distSq));
+        return List.copyOf(offsets);
     }
 
     public static List<BlockPos> positions() { return positions; }
+    public static List<Extra> extras() { return extras; }
+    public static int lastForcedExtracted() { return lastForcedExtracted; }
+    public static void reportForcedExtracted(int n) { lastForcedExtracted = n; }
 
-    public static boolean inRange(BlockPos chest, BlockPos player) {
-        int limit = MAX_CHUNK_RADIUS * 16 + BLOCK_MARGIN;
-        return Math.abs((long) chest.getX() - player.getX()) <= limit
-                && Math.abs((long) chest.getZ() - player.getZ()) <= limit;
+    public static boolean inRange(BlockPos pos, BlockPos player) {
+        long max = (long)ToolkitConfig.sanitizeStorageRange(ToolkitConfig.INSTANCE.storageRangeChunks)*16 + 16;
+        return Math.abs((long)pos.getX()-player.getX()) <= max
+                && Math.abs((long)pos.getZ()-player.getZ()) <= max;
+    }
+
+    private static boolean selectedChest(Block block, ToolkitConfig config) {
+        if (block == Blocks.CHEST) return config.storageChest;
+        if (block == Blocks.TRAPPED_CHEST) return config.storageTrapped;
+        if (block == Blocks.ENDER_CHEST) return config.storageEnder;
+        return false;
+    }
+
+    public static boolean selectedChest(Block block) {
+        return selectedChest(block, ToolkitConfig.INSTANCE);
     }
 
     private static void reset() {
-        positions = List.of();
-        pending = new ArrayList<>();
-        pendingSet = new HashSet<>();
-        currentLevel = null;
-        nextChunk = 0;
+        positions=List.of();
+        extras=List.of();
+        pending=new ArrayList<>();
+        pendingSet=new HashSet<>();
+        pendingExtras=new ArrayList<>();
+        nextChunk=0;
+        lastForcedExtracted=0;
+        levelMarker=null;
     }
 
     public static void tick(Minecraft client) {
-        if (!ToolkitConfig.INSTANCE.chestXray || client.level == null || client.player == null) {
-            reset();
-            return;
+        ToolkitConfig config=ToolkitConfig.INSTANCE;
+        if (client.level==null || client.player==null ||
+                (!config.chestXray && !config.storageShulkers && !config.storageHoppers)) {
+            reset(); return;
         }
 
-        int px = Math.floorDiv(client.player.getBlockX(), 16);
-        int pz = Math.floorDiv(client.player.getBlockZ(), 16);
-        if (client.level != currentLevel || Math.abs(px - centerChunkX) >= 2
-                || Math.abs(pz - centerChunkZ) >= 2) {
+        int cx=Math.floorDiv(client.player.getBlockX(),16);
+        int cz=Math.floorDiv(client.player.getBlockZ(),16);
+        if(client.level!=levelMarker || Math.abs(cx-centerChunkX)>=2 || Math.abs(cz-centerChunkZ)>=2) {
             reset();
-            currentLevel = client.level;
-            centerChunkX = px;
-            centerChunkZ = pz;
+            levelMarker=client.level;
+            centerChunkX=cx;
+            centerChunkZ=cz;
         }
 
-        int last = Math.min(OFFSETS.size(), nextChunk + SCAN_CHUNKS_PER_TICK);
-        for (int i = nextChunk; i < last; i++) {
-            Offset off = OFFSETS.get(i);
-            // false = do not generate, request or load chunks; read cached data only.
-            var candidate = client.level.getChunkSource().getChunk(
-                    centerChunkX + off.x(), centerChunkZ + off.z(), ChunkStatus.FULL, false);
-            if (!(candidate instanceof LevelChunk chunk)) continue;
-
-            for (BlockPos pos : chunk.getBlockEntities().keySet()) {
-                if (!inRange(pos, client.player.blockPosition())) continue;
-                if (!XrayController.isChest(chunk.getBlockState(pos).getBlock())) continue;
-                if (pendingSet.add(pos)) {
-                    pending.add(pos.immutable());
-                    if (pending.size() >= MAX_CHESTS) break;
+        int radius=ToolkitConfig.sanitizeStorageRange(config.storageRangeChunks);
+        int processed=0;
+        BlockPos player=client.player.blockPosition();
+        while(nextChunk<OFFSETS.size() && processed<SCAN_CHUNKS_PER_TICK) {
+            Offset offset=OFFSETS.get(nextChunk++);
+            if(Math.abs(offset.x())>radius || Math.abs(offset.z())>radius) continue;
+            processed++;
+            var chunk=client.level.getChunkSource().getChunk(cx+offset.x(),cz+offset.z(),
+                    ChunkStatus.FULL,false);
+            if(!(chunk instanceof LevelChunk loaded)) continue;
+            for(BlockPos pos:loaded.getBlockEntities().keySet()) {
+                if(!inRange(pos,player)) continue;
+                Block block=loaded.getBlockState(pos).getBlock();
+                if(config.chestXray && selectedChest(block,config) && pending.size()<MAX_CHESTS) {
+                    if(pendingSet.add(pos)) pending.add(pos.immutable());
+                } else if(pendingExtras.size()<MAX_EXTRAS) {
+                    boolean shulker=block instanceof ShulkerBoxBlock;
+                    if ((shulker && config.storageShulkers) ||
+                            (block==Blocks.HOPPER && config.storageHoppers)) {
+                        pendingExtras.add(new Extra(pos.immutable(),shulker));
+                    }
                 }
             }
-            if (pending.size() >= MAX_CHESTS) {
-                last = OFFSETS.size();
-                break;
-            }
         }
-        nextChunk = last;
-        if (nextChunk >= OFFSETS.size()) {
-            positions = List.copyOf(pending);
-            pending = new ArrayList<>();
-            pendingSet = new HashSet<>();
-            nextChunk = 0;
+        if(nextChunk>=OFFSETS.size()) {
+            positions=List.copyOf(pending);
+            extras=List.copyOf(pendingExtras);
+            nextChunk=0;
+            pending=new ArrayList<>();
+            pendingSet=new HashSet<>();
+            pendingExtras=new ArrayList<>();
         }
     }
 }
