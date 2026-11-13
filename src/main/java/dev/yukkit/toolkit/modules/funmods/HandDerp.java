@@ -45,7 +45,7 @@ public final class HandDerp extends Module {
 
     /** Bit set of the skin layers the player currently has enabled. */
     private static int skinLayerBits() {
-        return mc.options.modelParts.stream().mapToInt(part -> 1 << part.ordinal()).reduce(0, (x, y) -> x | y);
+        return UtilSkin.enabledParts().stream().mapToInt(part -> 1 << part.ordinal()).reduce(0, (x, y) -> x | y);
     }
 
     /** Re-announces the client settings to the server with the given main hand. */

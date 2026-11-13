@@ -26,7 +26,7 @@ public final class SkinDerp extends Module {
     @Override
     public void onEnable() {
         original.clear();
-        original.addAll(mc.options.modelParts);
+        original.addAll(UtilSkin.enabledParts());
         saved = true;
         timer = 0;
         step = 0;
