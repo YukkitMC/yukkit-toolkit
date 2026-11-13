@@ -68,7 +68,7 @@ final class UtilPearl {
         return (float) (Math.toDegrees(Math.atan2(to.z - from.z, to.x - from.x)) - 90.0);
     }
 
-    private static Vec3 direction(float yaw, float pitch) {
+    static Vec3 direction(float yaw, float pitch) {
         double yr = Math.toRadians(yaw);
         double pr = Math.toRadians(pitch);
         double cos = Math.cos(pr);
