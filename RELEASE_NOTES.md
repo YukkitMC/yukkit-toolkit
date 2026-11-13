@@ -1,33 +1,24 @@
-# Yukkit Toolkit v0.1.0-alpha.13
+# Yukkit Toolkit v0.1.0-alpha.14
 
 **Minecraft Java 26.3 · Fabric · Java 25**
 
-## Chest Model: occlusion troubleshooting hotfix
+## Freecam shortcut: X
 
-Some users reported that the real textured chest model still disappeared behind solid walls, including with Iris/Sodium. This version changes the depthless model render pipeline and removes an extra camera-frustum discard from hidden-chest extraction.
+- Press **X** in-game to **enable Freecam**.
+- Press **X again** to disable it.
+- The shortcut only works while you're in a world with no menu open.
+- You can rebind the key in Minecraft's Controls screen.
+- **RSHIFT** still opens Yukkit Tools, and **V** still toggles Perspective.
 
-- Keeps the real vanilla chest texture and lid model, with **no colored bounding box around chests**.
-- The duplicate rendering pipeline now has **no depth/stencil attachment**, avoiding ordinary wall depth testing.
-- Forces up to **192 cached hidden chest render states per frame**, independent of vanilla visible-section occlusion.
-- Scans client-loaded chunks incrementally, adjustable from **4 to 32 chunks per direction** (up to ~512 blocks).
-- The new Storage ESP settings page displays **Cached chests** and **Forced render states**. These counters help diagnose whether a hidden chest reaches the renderer.
+## Regular GitHub Release
+This version is published as an **ordinary Release**, not a GitHub pre-release. The JAR is attached directly to this page and does not need to be extracted from a workflow artifact ZIP.
 
-**Important:** Compilation alone does not prove that the textured model will always display behind walls. Iris/Sodium's rendering passes may still hide it. If so, you can enable optional tracers (which use Minecraft's standard always-on-top Gizmos API) while preserving the texture mode. A screenshot of the settings counters when the chest disappears will allow a more specific fix.
+**Important:** The tag remains an alpha version because the project still has experimental modules, especially the textured Chest ESP with Iris/Sodium. GitHub's release badge reflects the distribution choice, **not** comprehensive in-game testing.
 
-## Other additions
-- **Storage ESP:** chest/trapped/Ender filters, range options, optional tracers and tracer colors.
-- **Shulker & hopper markers:** optional, off by default.
-- **Item ESP:** optional markers around dropped items, off by default.
-- **Auto Respawn:** optional automatic normal respawn, off by default.
-- Regular Minecraft vanilla GUI buttons remain unchanged.
-
-## Install
-1. Use Minecraft 26.3, Java 25, Fabric Loader and a compatible Fabric API.
-2. Delete all older Yukkit Toolkit JAR files from the Modrinth instance `mods` folder.
-3. Copy only `yukkit-toolkit-0.1.0-alpha.13.jar` to `mods`.
-4. Open **RSHIFT → Mods → Chest Model** and **Storage ESP Options**.
-5. If the chest model still disappears behind stone, screenshot the counters in Storage ESP Options and share a fresh `latest.log`.
-
-Release is experimental and **has not been runtime-tested with the user's modpack**.
+## Installation
+1. Use Minecraft **26.3** with compatible Fabric Loader, Fabric API, and Java 25.
+2. Remove `yukkit-toolkit-0.1.0-alpha.13.jar` and any older Yukkit Toolkit JAR from your Modrinth profile's `mods` directory.
+3. Place `yukkit-toolkit-0.1.0-alpha.14.jar` directly into `mods`.
+4. Start the game and press **X** to toggle Freecam.
 
 GitHub: https://github.com/YukkitMC/yukkit-toolkit

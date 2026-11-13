@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.0-alpha.14 — 2026-11-12
+
+### Added
+- **X** key toggles Freecam on/off directly in the world without opening the Yukkit Tools GUI.
+- Freecam key uses Fabric's native keybinding API, appears in Minecraft Controls, and ignores presses while a menu is open.
+- Freecam remains available in the Camera menu, and V continues to toggle Perspective.
+
+### Distribution
+- Published as a **regular GitHub Release**, not marked as a pre-release.
+- The GitHub Actions release workflow now creates regular releases, marks the latest release, and corrects an existing tag's pre-release flag when re-run.
+- The code is still an alpha build; a regular GitHub release does **not** imply the entire modpack or every module has been runtime-tested.
+
+
+
 ## 0.1.0-alpha.13 — 2026-11-12
 
 ### Fixed and diagnostic

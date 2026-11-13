@@ -19,7 +19,7 @@
 
 Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game options menu, with a focus on straightforward controls, reliable behavior, and low overhead.
 
-> **Early alpha — v0.1.0-alpha.13.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
+> **Experimental build — v0.1.0-alpha.14 (published as a normal GitHub Release).** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
 
 ## Features
 
@@ -55,6 +55,7 @@ Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game 
 ### Controls
 
 - **Right Shift:** open/close the Yukkit Toolkit panel.
+- **X:** toggle Freecam on/off while in the game and no menu is open. The keybind can be changed in Minecraft Controls.
 - **V:** toggle Perspective when no menu is open.
 - **Freecam:** WASD to move, mouse to rotate, SPACE to ascend, SNEAK to descend, and SPRINT to accelerate.
 - **Mods page:** Auto Totem, Ore X-Ray, Chest Model, Storage ESP Options, Item ESP, Keystrokes, TNT Timer, Lightweight Graphics and Team HUD.
