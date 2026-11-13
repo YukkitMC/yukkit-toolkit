@@ -13,6 +13,8 @@ import dev.yukkit.toolkit.modules.AutoMiner;
 import dev.yukkit.toolkit.modules.MaceSwap;
 import dev.yukkit.toolkit.modules.AutoEat;
 import dev.yukkit.toolkit.render.ChestCandidates;
+import dev.yukkit.toolkit.render.StorageVisualExtras;
+import dev.yukkit.toolkit.modules.AutoRespawn;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
@@ -40,6 +42,7 @@ public final class YukkitToolkitClient implements ClientModInitializer {
         ));
 
         ToolkitHud.register();
+        StorageVisualExtras.register();
 
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -68,6 +71,7 @@ public final class YukkitToolkitClient implements ClientModInitializer {
             AutoClicker.tick(client);
             AutoMiner.tick(client);
             ChestCandidates.tick(client);
+            AutoRespawn.tick(client);
 
         });
         LOGGER.info("Yukkit Toolkit initialized (Minecraft 26.3 / Fabric)");
