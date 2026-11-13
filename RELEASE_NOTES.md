@@ -1,8 +1,10 @@
-# Yukkit Toolkit v0.2.0-alpha.3 · Minecraft 26.3
+# Yukkit Toolkit v0.2.0-alpha.4 · Minecraft 26.3
 
 **Alpha build, not fully tested in-game.** Back up your worlds and test in a separate instance.
 
 ## What's new
+- Black and blue theme for the module window.
+- Fix: typed search text was invisible; the field is now drawn by the mod.
 - Module window restyled to match the reference layout and enlarged; search box is now in the title bar.
 - Fix: legacy toggles (Keystrokes, Fullbright, Auto Eat...) could be enabled but not disabled from the new screen.
 - 139 modules across Combat, Movement, Player, World, Exploit, Render, Misc and Fun (written from scratch).

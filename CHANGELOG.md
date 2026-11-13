@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0-alpha.4 — 2026-11-13
+
+### Changed
+- Module window uses a black and blue theme.
+
+### Fixed
+- Search text was not visible while typing.
+
 ## 0.2.0-alpha.3 — 2026-11-13
 
 ### Changed
