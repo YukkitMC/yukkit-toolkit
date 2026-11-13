@@ -16,7 +16,8 @@
     "XrayBlockMixin",
     "XrayOcclusionMixin",
     "TeamColorMixin",
-    "TexturedChestMixin"
+    "TexturedChestMixin",
+    "ChestVisibilityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
