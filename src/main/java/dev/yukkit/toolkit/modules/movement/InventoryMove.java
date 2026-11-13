@@ -19,7 +19,7 @@ public final class InventoryMove extends Module {
 
     private static boolean down(KeyMapping key) {
         try {
-            InputConstants.Key k = key.getKey();
+            InputConstants.Key k = InputConstants.getKey(key.saveString());
             return k.getType() == InputConstants.Type.KEYBOARD && InputConstants.isKeyDown(k.getValue());
         } catch (Throwable t) {
             return false;

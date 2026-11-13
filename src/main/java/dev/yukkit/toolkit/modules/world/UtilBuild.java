@@ -220,7 +220,7 @@ public final class UtilBuild {
         boolean ok = false;
         try {
             InteractionResult result = mc.gameMode.useItemOn(mc.player, hand, hit);
-            ok = result.shouldSwingHand();
+            ok = result.consumesAction();
             if (ok) player.swing(hand, SwingAnimation.DEFAULT, false);
         } finally {
             if (slot >= 0 && slot != previous) inv.setSelectedSlot(previous);

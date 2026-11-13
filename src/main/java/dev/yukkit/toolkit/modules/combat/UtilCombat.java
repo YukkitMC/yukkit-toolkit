@@ -5,6 +5,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.OwnableEntity;
@@ -41,7 +42,7 @@ final class UtilCombat {
         if (le instanceof Enemy) return mobs;
         if (le instanceof Mob) {
             if (!animals || le instanceof OwnableEntity) return false;
-            return le.getType() != EntityType.VILLAGER;
+            return le.getType() != EntityTypes.VILLAGER;
         }
         return false;
     }

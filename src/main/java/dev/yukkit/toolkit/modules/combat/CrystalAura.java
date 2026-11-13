@@ -9,6 +9,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -64,7 +65,7 @@ public final class CrystalAura extends Module {
     @Override public void onTick() {
         if (cooldown > 0) { cooldown--; return; }
         if (!inGame() || mc.gameMode == null) return;
-        Player p = mc.player;
+        LocalPlayer p = mc.player;
         if (p.isSpectator() || p.isDeadOrDying()) return;
 
         List<LivingEntity> targets = UtilCombat.find(new UtilCombat.Filter(players.get(), mobs.get(), false,
@@ -78,7 +79,7 @@ public final class CrystalAura extends Module {
         if (place.get() && placeOne(p, target, health)) cooldown = delay.asInt();
     }
 
-    private boolean breakOne(Player p, LivingEntity target, double health) {
+    private boolean breakOne(LocalPlayer p, LivingEntity target, double health) {
         EndCrystal best = null;
         double bestScore = -Double.MAX_VALUE;
         for (Entity e : mc.level.entitiesForRendering()) {
@@ -97,7 +98,7 @@ public final class CrystalAura extends Module {
         return true;
     }
 
-    private boolean placeOne(Player p, LivingEntity target, double health) {
+    private boolean placeOne(LocalPlayer p, LivingEntity target, double health) {
         InteractionHand hand = null;
         if (p.getOffhandItem().is(Items.END_CRYSTAL)) hand = InteractionHand.OFF_HAND;
         else if (p.getMainHandItem().is(Items.END_CRYSTAL)) hand = InteractionHand.MAIN_HAND;

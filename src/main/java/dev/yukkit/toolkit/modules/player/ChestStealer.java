@@ -4,6 +4,7 @@ import dev.yukkit.toolkit.core.Category;
 import dev.yukkit.toolkit.core.Module;
 import dev.yukkit.toolkit.core.Setting;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerInput;
@@ -30,7 +31,7 @@ public final class ChestStealer extends Module {
     @Override
     public void onTick() {
         if (!UtilInv.ready()) return;
-        Player p = mc.player;
+        LocalPlayer p = mc.player;
         if (!(mc.gui.screen() instanceof AbstractContainerScreen<?>)) { lastMenu = -1; return; }
         AbstractContainerMenu menu = p.containerMenu;
         if (!UtilInv.isStorageMenu(p, menu)) return;
