@@ -15,6 +15,8 @@ import dev.yukkit.toolkit.modules.AutoEat;
 import dev.yukkit.toolkit.render.ChestCandidates;
 import dev.yukkit.toolkit.render.StorageVisualExtras;
 import dev.yukkit.toolkit.modules.AutoRespawn;
+import dev.yukkit.toolkit.modules.framework.ModuleRegistry;
+import dev.yukkit.toolkit.modules.framework.BuiltinModules;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
@@ -46,6 +48,7 @@ public final class YukkitToolkitClient implements ClientModInitializer {
                 "key.yukkit_toolkit.freecam", InputConstants.Type.KEYBOARD, InputConstants.KEY_X, category
         ));
 
+        BuiltinModules.register();
         ToolkitHud.register();
         StorageVisualExtras.register();
 
@@ -82,6 +85,7 @@ public final class YukkitToolkitClient implements ClientModInitializer {
             AutoMiner.tick(client);
             ChestCandidates.tick(client);
             AutoRespawn.tick(client);
+            ModuleRegistry.tick(client);
 
         });
         LOGGER.info("Yukkit Toolkit initialized (Minecraft 26.3 / Fabric)");
