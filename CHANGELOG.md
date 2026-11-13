@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.0-alpha.10 — 2026-11-12
+
+### Fixed
+- Fixed a verified Chest ESP crash: `IllegalStateException: Close the existing render pass before performing additional commands`.
+- Removed manual `StagedVertexBuffer.upload()` / nested `RenderPass` calls during translucent terrain rendering.
+- Replaced the custom GPU overlay with Minecraft 26.3's built-in `Gizmos.cuboid` rendering on Fabric's `BEFORE_GIZMOS` phase.
+- Removed the obsolete GameRenderer cleanup Mixin registration.
+
+### Behavior
+- Blue translucent highlights remain visible through walls, with normal terrain unaffected.
+- Checks only block entities already loaded by the client, approximately every 20 game ticks and up to 96 nearby containers.
+- Compilation validated in GitHub Actions. Runtime with Iris/Sodium should be retested; no in-game confirmation has yet been performed for this fix.
+
+
+
 ## 0.1.0-alpha.9 — 2026-11-12
 
 ### Fixed

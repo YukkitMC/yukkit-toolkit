@@ -19,7 +19,7 @@
 
 Yukkit Toolkit combines practical Minecraft tools under a vanilla-style in-game options menu, with a focus on straightforward controls, reliable behavior, and low overhead.
 
-> **Early alpha — v0.1.0-alpha.9.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
+> **Early alpha — v0.1.0-alpha.10.** Builds are automatically compiled by GitHub Actions, but Minecraft runtime compatibility, interoperability with other mods and individual gameplay features have **not** been fully validated. Test in a separate instance and back up important worlds.
 
 ## Features
 
@@ -72,7 +72,7 @@ Minecraft **26.3** uses SDL input scancodes rather than the older GLFW keycodes.
 
 **Auto Totem.** Only triggers for an empty offhand in the ordinary player inventory; it does not drop an item already held in the offhand. Some servers forbid automation.
 
-**Chest ESP.** When enabled, all ordinary blocks stay visible. A separate depth-independent, translucent blue 3D box marks detected chests, trapped chests, Ender chests and barrels (up to 96 within about 64 blocks) using block entities from loaded client chunks. It doesn't expose contents, discover unloaded blocks, or render the actual chest texture through terrain. This is an experimental overlay and may not work with every graphics mod or shader.
+**Chest ESP.** When enabled, all ordinary blocks stay visible. A separate vanilla Gizmos API overlay marks detected chests, trapped chests, Ender chests and barrels with translucent blue 3D boxes through walls (up to 96 within about 64 blocks) using block entities from loaded client chunks. It does not issue custom GPU commands during active render passes. It doesn't expose contents, discover unloaded blocks, or render the actual chest texture through terrain. This is an experimental overlay and may not work with every graphics mod or shader.
 
 **Automatic gameplay tools.** Auto Clicker only operates while the attack key is held with an entity under the crosshair. Auto Miner only targets the current ray-traced block within reach. Mace Swap preselects a mace during a fall and does not guarantee a smash attack. Auto Eat uses golden carrots already on the hotbar. All are disabled by default; users must follow server rules.
 
