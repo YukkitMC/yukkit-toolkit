@@ -83,7 +83,7 @@ public final class Notifier extends Module {
     private void announce(String name, String verb) {
         if (!hasWorld()) return;
         if (mc.player.getGameProfile().name().equals(name)) return;
-        if (friendsOnly.get() && !UtilFriends.isFriend(name)) return;
+        if (friendsOnly.get() && !UtilFriends.isFriendName(name)) return;
         UtilChat.info(name + " " + verb + " the game.");
         if (sound.get()) UtilChat.ping();
     }

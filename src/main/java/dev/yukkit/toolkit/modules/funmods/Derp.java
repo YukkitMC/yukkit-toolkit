@@ -48,7 +48,7 @@ public final class Derp extends Module {
         angle = Mth.wrapDegrees(angle + speed.asFloat());
 
         if (mode.is("Spin")) {
-            yaw = baseYaw + angle;
+            yaw = baseYaw + (camera.get() ? speed.asFloat() : angle);
         } else if (mode.is("Random")) {
             ThreadLocalRandom rng = ThreadLocalRandom.current();
             yaw = rng.nextFloat() * 360f - 180f;

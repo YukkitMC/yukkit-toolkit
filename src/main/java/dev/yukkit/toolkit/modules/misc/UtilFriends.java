@@ -26,14 +26,14 @@ public final class UtilFriends {
         }
     }
 
-    public static boolean isFriend(String name) {
+    public static boolean isFriendName(String name) {
         if (name == null) return false;
         ensureLoaded();
         return NAMES.contains(name.toLowerCase(Locale.ROOT));
     }
 
     public static boolean isFriend(Entity entity) {
-        return entity instanceof Player p && isFriend(p.getName().getString());
+        return entity instanceof Player p && isFriendName(p.getName().getString());
     }
 
     /** @return true when the name is a friend afterwards. */
