@@ -1,4 +1,4 @@
-package dev.yukkit.toolkit.modules.render.mixin;
+package dev.yukkit.toolkit.modmixin;
 
 import dev.yukkit.toolkit.modules.render.NoBob;
 import dev.yukkit.toolkit.modules.render.NoHurtCam;

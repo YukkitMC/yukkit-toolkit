@@ -1,4 +1,4 @@
-package dev.yukkit.toolkit.modules.exploit.mixin;
+package dev.yukkit.toolkit.modmixin;
 
 import dev.yukkit.toolkit.modules.exploit.AntiReducedDebugInfo;
 import net.minecraft.world.entity.player.Player;

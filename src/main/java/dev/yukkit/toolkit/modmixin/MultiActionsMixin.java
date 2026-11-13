@@ -1,4 +1,4 @@
-package dev.yukkit.toolkit.modules.exploit.mixin;
+package dev.yukkit.toolkit.modmixin;
 
 import dev.yukkit.toolkit.modules.exploit.MultiActions;
 import net.minecraft.client.Minecraft;

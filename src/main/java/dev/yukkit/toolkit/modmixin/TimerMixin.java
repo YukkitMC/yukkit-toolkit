@@ -1,4 +1,4 @@
-package dev.yukkit.toolkit.modules.world.mixin;
+package dev.yukkit.toolkit.modmixin;
 
 import dev.yukkit.toolkit.modules.world.UtilTimer;
 import net.minecraft.client.DeltaTracker;

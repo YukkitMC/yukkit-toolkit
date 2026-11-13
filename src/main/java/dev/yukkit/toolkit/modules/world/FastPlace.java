@@ -3,7 +3,7 @@ package dev.yukkit.toolkit.modules.world;
 import dev.yukkit.toolkit.core.Category;
 import dev.yukkit.toolkit.core.Module;
 import dev.yukkit.toolkit.core.Setting;
-import dev.yukkit.toolkit.modules.world.mixin.ClientDelayAccessor;
+import dev.yukkit.toolkit.modmixin.ClientDelayAccessor;
 import net.minecraft.world.item.BlockItem;
 
 /** Shortens the delay between two right clicks. */

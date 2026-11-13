@@ -9,7 +9,7 @@ import dev.yukkit.toolkit.core.Setting;
 /**
  * Hold shift and the left mouse button while dragging over inventory slots to quick-move
  * every stack you pass over. The click itself is issued by
- * {@code dev.yukkit.toolkit.modules.misc.mixin.ItemScrollerMixin}.
+ * {@code dev.yukkit.toolkit.modmixin.ItemScrollerMixin}.
  */
 public final class ItemScroller extends Module {
     private static int lastSlot = -1;

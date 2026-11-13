@@ -1,4 +1,4 @@
-package dev.yukkit.toolkit.modules.world.mixin;
+package dev.yukkit.toolkit.modmixin;
 
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;

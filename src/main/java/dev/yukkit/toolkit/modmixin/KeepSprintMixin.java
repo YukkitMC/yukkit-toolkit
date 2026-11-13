@@ -1,4 +1,4 @@
-package dev.yukkit.toolkit.modules.combat.mixin;
+package dev.yukkit.toolkit.modmixin;
 
 import dev.yukkit.toolkit.modules.combat.KeepSprint;
 import net.minecraft.client.Minecraft;

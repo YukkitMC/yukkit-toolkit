@@ -1,4 +1,4 @@
-package dev.yukkit.toolkit.modules.render.mixin;
+package dev.yukkit.toolkit.modmixin;
 
 import dev.yukkit.toolkit.modules.render.NoFov;
 import net.minecraft.client.player.AbstractClientPlayer;

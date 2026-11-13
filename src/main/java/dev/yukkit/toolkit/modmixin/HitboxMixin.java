@@ -1,4 +1,4 @@
-package dev.yukkit.toolkit.modules.combat.mixin;
+package dev.yukkit.toolkit.modmixin;
 
 import dev.yukkit.toolkit.modules.combat.Hitbox;
 import net.minecraft.world.entity.Entity;

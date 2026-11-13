@@ -3,7 +3,7 @@ package dev.yukkit.toolkit.modules.world;
 import dev.yukkit.toolkit.core.Category;
 import dev.yukkit.toolkit.core.Module;
 import dev.yukkit.toolkit.core.Setting;
-import dev.yukkit.toolkit.modules.world.mixin.GameModeDelayAccessor;
+import dev.yukkit.toolkit.modmixin.GameModeDelayAccessor;
 
 /** Removes the pause between two broken blocks. */
 public final class FastBreak extends Module {

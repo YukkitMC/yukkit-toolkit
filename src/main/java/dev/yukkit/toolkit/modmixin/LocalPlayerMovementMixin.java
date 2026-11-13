@@ -1,4 +1,4 @@
-package dev.yukkit.toolkit.modules.movement.mixin;
+package dev.yukkit.toolkit.modmixin;
 
 import dev.yukkit.toolkit.modules.movement.NoPush;
 import dev.yukkit.toolkit.modules.movement.NoSlow;

@@ -2,7 +2,7 @@ package dev.yukkit.toolkit.modules.movement;
 
 import dev.yukkit.toolkit.core.Category;
 import dev.yukkit.toolkit.core.Module;
-import dev.yukkit.toolkit.modules.movement.mixin.LivingEntityJumpAccessor;
+import dev.yukkit.toolkit.modmixin.LivingEntityJumpAccessor;
 
 public final class NoJumpDelay extends Module {
     public NoJumpDelay() { super("NoJumpDelay", "Removes the delay between jumps while holding jump.", Category.MOVEMENT); }

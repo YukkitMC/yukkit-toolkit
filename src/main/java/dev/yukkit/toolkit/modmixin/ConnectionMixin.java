@@ -1,4 +1,4 @@
-package dev.yukkit.toolkit.mixin;
+package dev.yukkit.toolkit.modmixin;
 
 import dev.yukkit.toolkit.core.ModuleManager;
 import net.minecraft.network.Connection;

@@ -1,4 +1,4 @@
-package dev.yukkit.toolkit.modules.misc.mixin;
+package dev.yukkit.toolkit.modmixin;
 
 import dev.yukkit.toolkit.modules.misc.ItemScroller;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
