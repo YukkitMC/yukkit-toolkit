@@ -193,6 +193,8 @@ public final class ClickGuiScreen extends Screen {
         g.fill(x + w - 108, y + h - 43, x + w - 16, y + h - 18, surfaceAlt);
         g.text(font, "PREVIOUS", x + w - 197, y + h - 34, primary, true);
         g.text(font, "NEXT  " + (page + 1) + "/" + pages, x + w - 96, y + h - 34, primary, true);
+        if (searchBox != null) searchBox.extractRenderState(g, mouseX, mouseY, delta);
+        rebuildHitBoxes();
     }
 
     private static String trim(String text, int max) {
